@@ -10,7 +10,7 @@ namespace PIOONEER_API.Controllers
     public class OrderDetailsController : Controller
     {
         protected IUnitOfWork _unitOfWork;
-        DateTime CreateDate = DateTime.Now;
+
         public OrderDetailsController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
