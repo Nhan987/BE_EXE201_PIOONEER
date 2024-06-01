@@ -14,7 +14,6 @@ namespace PIOONEER_Repository.Entity
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
-
         public DateTime ExpiredDay { get; set; }
         public float Percent { get; set; }
         public bool Status { get; set; }
