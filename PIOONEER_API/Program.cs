@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PIOONEER_Model.Mapper;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
+using Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+builder.Services.AddScoped<Firebases>();
 var config = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile(new AutoMapperProfile());

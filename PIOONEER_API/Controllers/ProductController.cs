@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
-
+using Tools;
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
@@ -12,9 +12,11 @@ namespace PIOONEER_API.Controllers
     {
         protected IUnitOfWork _unitOfWork;
         DateTime CreateDate = DateTime.Now;
-        public ProductController(IUnitOfWork unitOfWork)
+        private readonly Firebases _firebase;
+        public ProductController(IUnitOfWork unitOfWork,Firebases firebases)
         {
             _unitOfWork = unitOfWork;
+            _firebase = firebases;
         }
 
         [HttpGet]
@@ -22,6 +24,18 @@ namespace PIOONEER_API.Controllers
         {
             var products = await _unitOfWork.Products.GetAllAsync();
             return Ok(products);
+        }
+
+
+
+        [HttpPost]
+        [Route("UploadFile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+            var ok =await _firebase.UploadImage(file);
+            return Ok("");
         }
 
         [HttpGet("{id}")]
