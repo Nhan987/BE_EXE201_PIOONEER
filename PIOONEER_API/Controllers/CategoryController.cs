@@ -5,6 +5,8 @@ using PIOONEER_Repository.Repository;
 
 namespace PIOONEER_API.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class CategoryController : Controller
     {
         protected IUnitOfWork _unitOfWork;

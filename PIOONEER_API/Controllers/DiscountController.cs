@@ -6,6 +6,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PIOONEER_API.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class DiscountController : Controller
     {
         protected IUnitOfWork _unitOfWork;
