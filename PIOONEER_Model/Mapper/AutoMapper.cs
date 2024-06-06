@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,9 @@ namespace PIOONEER_Model.Mapper
     {
         public AutoMapperProfile()
         {
-
+            CreateMap<User, UserResponse>();
+            CreateMap<UserRequest, User>();
+            CreateMap<User, LoginResponse>();
         }
     }
 }

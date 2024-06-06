@@ -6,8 +6,8 @@ namespace PIOONEER_Repository.Repository
 {
     public interface IUnitOfWork : IDisposable
     {
-        IGenericRepository<User> Users { get; }
-        IGenericRepository<Role> Roles { get; }
+        IGenericRepository<User> UserRepository { get; }
+        IGenericRepository<Role> RoleRepository { get; }
         IGenericRepository<Product> Products { get; }
         IGenericRepository<Order> Orders { get; }
         IGenericRepository<OrderDetails> OrderDetails { get; }
@@ -17,5 +17,6 @@ namespace PIOONEER_Repository.Repository
         IGenericRepository<ProductByUser> ProductByUsers { get; }
 
         Task<int> SaveChangesAsync();
+        void Save();
     }
 }
