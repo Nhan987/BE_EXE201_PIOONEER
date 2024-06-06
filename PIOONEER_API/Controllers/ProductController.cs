@@ -52,11 +52,11 @@ namespace PIOONEER_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProducts(ProductAddDTO productDto)
         {
-            if( productDto.CategoryId==null || productDto.DiscountId == null)
+            if( productDto.CategoryId==null || productDto.DiscountId == null || productDto.ProductImg == null) 
             {
                 return BadRequest("Category and Discount must Enter");
             }
-
+            String imageUrl = await _firebase.UploadImage(productDto.ProductImg);
             var product = new Product
             {
                 CategoryId = productDto.CategoryId,
@@ -67,7 +67,7 @@ namespace PIOONEER_API.Controllers
                 ProductQuantity = productDto.ProductQuantity,
                 CreateDate = CreateDate,
                 ModifiedDate = CreateDate,
-                ProductUrlImg = productDto.ProductUrlImg,
+                ProductUrlImg = imageUrl,
                 Status = true,
                 ProductByUserId = productDto.ProductByUserId
             };

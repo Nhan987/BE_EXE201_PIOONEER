@@ -27,8 +27,8 @@ namespace PIOONEER_Repository.Repository
         private IGenericRepository<Contact> _contacts;
         private IGenericRepository<ProductByUser> _productByUsers;
 
-        public IGenericRepository<User> Users => _users ??= new GenericRepository<User>(_context);
-        public IGenericRepository<Role> Roles => _roles ??= new GenericRepository<Role>(_context);
+        public IGenericRepository<User> UserRepository => _users ??= new GenericRepository<User>(_context);
+        public IGenericRepository<Role> RoleRepository => _roles ??= new GenericRepository<Role>(_context);
         public IGenericRepository<Product> Products => _products ??= new GenericRepository<Product>(_context);
         public IGenericRepository<Order> Orders => _orders ??= new GenericRepository<Order>(_context);
         public IGenericRepository<OrderDetails> OrderDetails => _orderDetails ??= new GenericRepository<OrderDetails>(_context);
@@ -45,6 +45,24 @@ namespace PIOONEER_Repository.Repository
         public void Dispose()
         {
             _context.Dispose();
+        }
+        public void Save()
+        {
+            _context.SaveChanges();
+        }
+
+        private bool disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    _context.Dispose();
+                }
+            }
+            disposed = true;
         }
     }
 }

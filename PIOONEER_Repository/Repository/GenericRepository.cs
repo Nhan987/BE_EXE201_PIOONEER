@@ -85,5 +85,13 @@ namespace PIOONEER_Repository.Repository
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
+        public virtual void Insert(T entity)
+        {
+            _dbSet.Add(entity);
+        }
+        public virtual T GetByID(object id)
+        {
+            return _dbSet.Find(id);
+        }
     }
 }
