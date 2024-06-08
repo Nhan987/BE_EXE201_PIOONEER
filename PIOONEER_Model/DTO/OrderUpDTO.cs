@@ -21,7 +21,6 @@ namespace PIOONEER_Model.DTO
         [Required]
         [RegularExpression(@"^-?\d+(\.\d+)?$", ErrorMessage = "TotalPrice description must be a valid float number.")]
         public double TotalPrice { get; set; }
-        [Required]
-        public string Status { get; set; }
+
     }
 }

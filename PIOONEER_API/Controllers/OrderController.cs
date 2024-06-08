@@ -1,99 +1,97 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoreApiResponse;
+using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
-using PIOONEER_Repository.Entity;
-using PIOONEER_Repository.Repository;
+using PIOONEER_Service.Interface;
+using System.Net;
 
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController : Controller
+    public class OrderController : BaseController
     {
-        protected IUnitOfWork _unitOfWork;
-        DateTime CreateDate = DateTime.Now;
-        public OrderController(IUnitOfWork unitOfWork)
+        private readonly IOrderService _orderService;
+        public OrderController(IOrderService orderService)
         {
-            _unitOfWork = unitOfWork;
+            _orderService = orderService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetOrder()
+        public IActionResult GetAllOrder([FromQuery] string searchQuery = null)
         {
-            var oders = await _unitOfWork.Orders.GetAllAsync();
-            return Ok(oders);
+            var order = _orderService.GetAllOrder(searchQuery);
+            return CustomResult("Data load successful", order);
         }
 
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrder(int id)
+        public async Task<IActionResult> GetProductById(int id)
         {
-            if (id == 0)
+            try
             {
-                return BadRequest();
+                var order = await _orderService.GetOrderByID(id);
+                return CustomResult("Order found", order);
             }
-            var orders = await _unitOfWork.Orders.GetByIdAsync(id);
-            return Ok(orders);
+            catch (Exception ex)
+            {
+                return CustomResult("Order not found", HttpStatusCode.NotFound);
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrders(OrderAddDTO OrderDto)
+        public async Task<IActionResult> CreateOrder([FromForm] OrderAddDTO OrderAdd)
         {
-            if (OrderDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("you must Enter All requiment");
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var oder = new Order
+            var result = await _orderService.CreateOrder(OrderAdd);
+            if (result.Status != "true")
             {
-                UserId = OrderDto.UserId,
-                OrderRequirement = OrderDto.OrderRequirement,
-                OrderCode = OrderDto.OrderCode,
-                PaymentMethod = OrderDto.PaymentMethod,
-                CreateDate = CreateDate,
-                TotalPrice = OrderDto.TotalPrice,
-                Status = "true"
-            };
-
-            await _unitOfWork.Orders.AddAsync(oder);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetOrder", new { id = oder.Id }, oder);
+                return CustomResult("Create fail.", new { Ordercode = result.OrderCode }, HttpStatusCode.Conflict);
+            }
+            return CustomResult("Create successful", result);
         }
+
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Order>> updateOrders(int id, OrderUpDTO OrderUPDTO)
+        public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderUpDTO OrderUp)
         {
-            var existingProduct = await _unitOfWork.Orders.FindAsync(x => x.Id == id);
-            if (existingProduct == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var order = new Order
+            try
             {
-                OrderRequirement = OrderUPDTO.OrderRequirement,
-                OrderCode = OrderUPDTO.OrderCode,
-                PaymentMethod = OrderUPDTO.PaymentMethod,
-                TotalPrice= OrderUPDTO.TotalPrice,
-                Status = OrderUPDTO.Status
-            };
-
-            _unitOfWork.Orders.Update(order);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+                var result = await _orderService.UpdateOrderBYID(id,OrderUp);
+                return CustomResult("Update successful", result);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult("Update Order fail", HttpStatusCode.BadRequest);
+            }
         }
+
+
         [HttpDelete("{id}")]
-
-        public async Task<IActionResult> DeleteOrder(int id)
+        public async Task<IActionResult> DeleteIOrder(int id)
         {
-            var orders = await _unitOfWork.Orders.GetByIdAsync(id);
-            if (orders == null)
+            try
             {
-                return NotFound();
+                var result = await _orderService.DeleteOrder(id);
+                if (result)
+                {
+                    return CustomResult("Delete successful.");
+                }
+                else
+                {
+                    return CustomResult("Order not found.", HttpStatusCode.NotFound);
+                }
             }
-
-            _unitOfWork.Orders.Delete(orders);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok("the Order was delete succesfully");
+            catch (Exception ex)
+            {
+                return CustomResult("Delete fail.", HttpStatusCode.BadRequest);
+            }
         }
     }
 }

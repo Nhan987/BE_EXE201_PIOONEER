@@ -1,93 +1,100 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoreApiResponse;
+using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
+using PIOONEER_Service.Interface;
+using System.Net;
 
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderDetailsController : Controller
+    public class OrderDetailsController : BaseController
     {
-        protected IUnitOfWork _unitOfWork;
-
-        public OrderDetailsController(IUnitOfWork unitOfWork)
+        private readonly IOrderDetailService _orderDetailService;
+        public OrderDetailsController(IOrderDetailService orderDetailService)
         {
-            _unitOfWork = unitOfWork;
+            _orderDetailService = orderDetailService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDetails>>> GetOrderDetails()
+        public  IActionResult GetAllOrder()
         {
-            var odersDetails = await _unitOfWork.OrderDetails.GetAllAsync();
-            return Ok();
+            var orderDetail = _orderDetailService.GetAllOrderDetail();
+            return CustomResult("Data load successful", orderDetail);
         }
 
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<OrderDetails>>> GetOrderDetails(int id)
+        public async Task<IActionResult> GetOrderById(int id)
         {
-            if (id == 0)
+            try
             {
-                return BadRequest();
+                var orderDetail = await _orderDetailService.GetOrderDetailByID(id);
+                return CustomResult("OrderDetail found", orderDetail);
             }
-            var orders = await _unitOfWork.OrderDetails.GetByIdAsync(id);
-            return Ok(orders);
+            catch (Exception ex)
+            {
+                return CustomResult("OrderDetail not found", HttpStatusCode.NotFound);
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrders(OrderDetailsAddDTO OrderDetailsDto)
+        public async Task<IActionResult> CreateOrder([FromForm] OrderDetailsAddDTO OrderDAdd)
         {
-            if (OrderDetailsDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("you must Enter All requiment");
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var oderD = new OrderDetails
+            var result = await _orderDetailService.CreateOrderDetail(OrderDAdd);
+            if (result == null)
             {
-                ProductId = OrderDetailsDto.ProductId,
-                OrderId = OrderDetailsDto.OrderId,
-                OrderQuantity = OrderDetailsDto.OrderQuantity,
-                OrderPrice = OrderDetailsDto.OrderPrice
-            };
-
-            await _unitOfWork.OrderDetails.AddAsync(oderD);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetOrderDetails", new { id = oderD.Id }, oderD);
+                return CustomResult("Create fail.", new { Ordercode = result }, HttpStatusCode.Conflict);
+            }
+            return CustomResult("Create successful", result);
         }
+
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<OrderDetails>> updateOrders(int id, OrderDetailsUpDTO OrderDTO)
+        public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderDetailsUpDTO OrderDUp)
         {
-            var existingProduct = await _unitOfWork.OrderDetails.FindAsync(x => x.Id == id);
-            if (existingProduct == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var orderD = new OrderDetails
+            try
             {
-                OrderQuantity= OrderDTO.OrderQuantity,
-                OrderPrice= OrderDTO.OrderPrice
-            };
-
-            _unitOfWork.OrderDetails.Update(orderD);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetOrder", new { id = orderD.Id }, orderD);
+                var result = await _orderDetailService.UpdateOrderDetailBYID(id, OrderDUp);
+                return CustomResult("Update successful", result);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult("Update Order fail", HttpStatusCode.BadRequest);
+            }
         }
+
+
         [HttpDelete("{id}")]
-
-        public async Task<IActionResult> DeleteOrderDetails(int id)
+        public async Task<IActionResult> DeleteIOrder(int id)
         {
-            var orderD = await _unitOfWork.OrderDetails.GetByIdAsync(id);
-            if (orderD == null)
+            try
             {
-                return NotFound();
+                var result = await _orderDetailService.DeleteOrderDetail(id);
+                if (result)
+                {
+                    return CustomResult("Delete successful.");
+                }
+                else
+                {
+                    return CustomResult("OrderDetails not found.", HttpStatusCode.NotFound);
+                }
             }
-
-            _unitOfWork.OrderDetails.Delete(orderD);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok("the Order was delete succesfully");
+            catch (Exception ex)
+            {
+                return CustomResult("Delete fail.", HttpStatusCode.BadRequest);
+            }
         }
+
     }
 }

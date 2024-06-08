@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace PIOONEER_Model.DTO
         public int ProductQuantity { get; set; }
 
         [Required]
-        public string ProductUrlImg { get; set; }
+        public IFormFile ProductImg { get; set; }
 
 
     }

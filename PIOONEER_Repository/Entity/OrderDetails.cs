@@ -14,7 +14,6 @@ namespace PIOONEER_Repository.Entity
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
-
         public long ProductId { get; set; }
         public long OrderId { get; set; }
         public int OrderQuantity { get; set; }
