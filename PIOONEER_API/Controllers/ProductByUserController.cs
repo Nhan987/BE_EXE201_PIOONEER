@@ -1,89 +1,103 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoreApiResponse;
+using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
+using PIOONEER_Service.Interface;
+using PIOONEER_Service.Service;
+using System.Net;
 
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductByUserController : Controller
+    public class ProductByUserController : BaseController
     {
-        protected IUnitOfWork _unitOfWork;
+        private readonly IProductBUService _productBUService;
 
-        public ProductByUserController(IUnitOfWork unitOfWork)
+        public ProductByUserController(IProductBUService productBUService)
         {
-            _unitOfWork = unitOfWork;
+            _productBUService = productBUService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductByUser>>> GetProductBU()
+        public IActionResult GetAllBUProduct()
         {
-            var productBU = await _unitOfWork.ProductByUsers.GetAllAsync();
-            return Ok(productBU);
+            var product = _productBUService.GetAllBUProduct();
+            return CustomResult("Data load successful", product);
         }
+
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<ProductByUser>>> GetProductBU(int id)
+        public async Task<IActionResult> GetProductById(int id)
         {
-            if (id == 0)
+            try
             {
-                return BadRequest();
+                var product = await _productBUService.GetProductBUByID(id);
+                return CustomResult("productBU found", product);
             }
-            var productBU = await _unitOfWork.ProductByUsers.GetByIdAsync(id);
-            return Ok(productBU);
+            catch (Exception ex)
+            {
+                return CustomResult("productBU not found", HttpStatusCode.NotFound);
+            }
         }
-
+        /* thís code have a forgein key so it cancel
         [HttpPost]
-        public async Task<ActionResult<ProductByUser>> PostProductBU(ProductBUDTO productBUDto)
+        public async Task<IActionResult> CreateProduct([FromForm] ProductBUDTO productAdd)
         {
-            if (productBUDto != null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("URL IMG can not be null");
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var productBU = new ProductByUser
+            var result = await _productBUService.CreateBUProduct(productAdd);
+            if (result.ProductUrlImg == null)
             {
-                ProductUrlImg =  productBUDto.ProductUrlImg
-            };
-
-            await _unitOfWork.ProductByUsers.AddAsync(productBU);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetProductBU", new { id = productBU.Id }, productBU);
+                return CustomResult("Create fail.", new { ProductImg = result.ProductUrlImg}, HttpStatusCode.Conflict);
+            }
+            return CustomResult("Create successful", result);
         }
+        */
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ProductByUser>> updateProductBU(int id, ProductBUDTO productBUDto)
+        public async Task<IActionResult> UpdateBUProduct(int id, [FromForm] ProductBUDTO productUpp)
         {
-            var existingProduct = await _unitOfWork.ProductByUsers.FindAsync(x => x.Id == id);
-            if (existingProduct == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            
-            var productBU = new ProductByUser
+            try
             {
-                ProductUrlImg = productBUDto.ProductUrlImg
-            };
-
-            _unitOfWork.ProductByUsers.Update(productBU);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetProductBU", new { id = productBU.Id }, productBU);
+                var result = await _productBUService.UpdateBUProductBYID(id, productUpp);
+                return CustomResult("Update successful", result);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult("Update product fail", HttpStatusCode.BadRequest);
+            }
         }
+
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProductBU(int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            var productBU = await _unitOfWork.ProductByUsers.GetByIdAsync(id);
-            if (productBU == null)
+            try
             {
-                return NotFound();
+                var result = await _productBUService.DeleteBUProduct(id);
+                if (result)
+                {
+                    return CustomResult("Delete successful.");
+                }
+                else
+                {
+                    return CustomResult("Product not found.", HttpStatusCode.NotFound);
+                }
             }
-
-            _unitOfWork.ProductByUsers.Delete(productBU);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok("the productBU was delete succesfully");
+            catch (Exception ex)
+            {
+                return CustomResult("Delete fail.", HttpStatusCode.BadRequest);
+            }
         }
+
+
     }
 }

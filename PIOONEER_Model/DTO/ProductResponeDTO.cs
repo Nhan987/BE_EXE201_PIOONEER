@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PIOONEER_Repository.Entity
+namespace PIOONEER_Model.DTO
 {
-    [Table("Product")]
-    public class Product
+    public class ProductResponeDTO
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
-
         public long DiscountId { get; set; }
         public long CategoryId { get; set; }
         public string ProductName { get; set; }
@@ -27,13 +21,5 @@ namespace PIOONEER_Repository.Entity
         public bool Status { get; set; }
         public long ProductByUserId { get; set; }
 
-        [ForeignKey("CategoryId")]
-        public virtual Category Category { get; set; }
-
-        [ForeignKey("DiscountId")]
-        public virtual Discount Discount { get; set; }
-
-        [ForeignKey("ProductByUserId")]
-        public virtual User ProductByUser { get; set; }
     }
 }
