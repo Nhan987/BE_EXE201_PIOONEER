@@ -31,6 +31,8 @@ namespace PIOONEER_Model.Mapper
             CreateMap<OrderDetailsAddDTO, OrderDetails>();
             CreateMap<OrderDetailsUpDTO, OrderDetails>();
 
+            CreateMap<Category, CategoryResponse>();
+            CreateMap<CategoryRequest, Category>();
         }
     }
 }
