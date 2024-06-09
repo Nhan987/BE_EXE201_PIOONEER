@@ -17,6 +17,9 @@ namespace PIOONEER_Model.Mapper
             CreateMap<User, UserResponse>();
             CreateMap<UserRequest, User>();
             CreateMap<User, LoginResponse>();
+            CreateMap<Category, CategoryResponse>();
+            CreateMap<CategoryRequest, Category>();
+
         }
     }
 }

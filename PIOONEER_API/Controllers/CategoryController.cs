@@ -1,80 +1,91 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoreApiResponse;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
-using PIOONEER_Repository.Repository;
+using PIOONEER_Service.Interface;
+using PIOONEER_Service.Service;
+using System.Net;
 
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : Controller
+    public class CategoryController : BaseController
     {
-        protected IUnitOfWork _unitOfWork;
-        private bool status = true;
-        public CategoryController(IUnitOfWork unitOfWork) 
+        private readonly CategoryService _service;
+
+        public CategoryController(CategoryService service)
         {
-            _unitOfWork = unitOfWork;
+            _service = service;
         }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetAllCategory()
+        public IActionResult GetAllCategory([FromQuery] string searchQuery = null)
         {
-            var cate = _unitOfWork.Categories.GetAllAsync();
+            var cate = _service.GetAll(searchQuery);
             return Ok(cate);
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategory(int id)
+        public async Task<IActionResult> GetCategoryById(int id)
         {
-            if (id == 0)
+            try
             {
-                return BadRequest();
+                var cate = _service.GetById(id);
+                return CustomResult("Data load successful", cate);
             }
-            var cate = _unitOfWork.Categories.GetByIdAsync(id);
-            return Ok(cate);
+            catch (Exception ex)
+            {
+                return CustomResult("Category not found", HttpStatusCode.NotFound);
+            }
         }
         [HttpPost]
-        public async Task<ActionResult<Category>> AddCategory(CategoryAddDTO category)
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryRequest cateRequest)
         {
-            if (category == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("You must enter all require fields");
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            var cate = new Category
-            {
-                CategoryName = category.CategoryName,
-                Status = status
-            };
-            await _unitOfWork.Categories.AddAsync(cate);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetCategory", new {id = cate.Id}, cate);
+            var result = await _service.Create(cateRequest);
+            if (!result.Status.Equals(true)) {
+                return CustomResult("Create fail.", new { CategoryName = result.CategoryName }, HttpStatusCode.Conflict);
+            }
+            return CustomResult("Create successful", result);
         }
         [HttpPut("{id}")]
-        public async Task<ActionResult<Category>> UpdateCategory(int id, CategoryUpdateDTO category)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryRequest cateRequest)
         {
-            var existCate = await _unitOfWork.Categories.FindAsync(x => x.Id == id);
-            if (existCate == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            var cate = new Category
+            try
             {
-                CategoryName = category.CategoryName,
-                Status = category.Status
-            };
-            _unitOfWork.Categories.Update(cate);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetCategory", new { id = cate.Id }, cate);
+                var result = await _service.Update(id, cateRequest);
+                return CustomResult("Update successful", result);
+            } catch (Exception ex)
+            {
+                return CustomResult("Update fail", HttpStatusCode.BadRequest);
+            }
         }
         [HttpDelete]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var cate = await _unitOfWork.Categories.GetByIdAsync(id);
-            if (cate == null)
+            try
             {
-                return NotFound();
+                var result = await _service.Delete(id);
+                if (result)
+                {
+                    return CustomResult("Delete successful.");
+                }
+                else
+                {
+                    return CustomResult("Category not found.", HttpStatusCode.NotFound);
+                }
+            } catch (Exception ex)
+            {
+                return CustomResult("Delete fail.", HttpStatusCode.BadRequest);
             }
-            _unitOfWork.Categories.Delete(cate);
-            await _unitOfWork.SaveChangesAsync();
-            return Ok("Delete Success!");
         }
     }
 }
