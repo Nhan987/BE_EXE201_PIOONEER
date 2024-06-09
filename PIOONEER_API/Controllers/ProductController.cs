@@ -1,109 +1,102 @@
-﻿using Humanizer;
+﻿using CoreApiResponse;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
-
+using PIOONEER_Service.Interface;
+using PIOONEER_Service.Service;
+using System.Net;
+using Tools;
 namespace PIOONEER_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : Controller
+    public class ProductController : BaseController
     {
-        protected IUnitOfWork _unitOfWork;
-        DateTime CreateDate = DateTime.Now;
-        public ProductController(IUnitOfWork unitOfWork)
+
+        private readonly IProductService _productService;
+        public ProductController(IProductService productService)
         {
-            _unitOfWork = unitOfWork;
+            _productService = productService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
+        public IActionResult GetAllProduct([FromQuery] string searchQuery = null)
         {
-            var products = await _unitOfWork.Products.GetAllAsync();
-            return Ok(products);
+            var product = _productService.GetAllProduct(searchQuery);
+            return CustomResult("Data load successful", product);
         }
 
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct(int id)
+        public async Task<IActionResult> GetProductById(int id)
         {
-            if(id == 0)
+            try
             {
-                return BadRequest();
+                var product = await _productService.GetProductByID(id);
+                return CustomResult("product found", product);
             }
-            var products = await _unitOfWork.Products.GetByIdAsync(id);
-            return Ok(products);
+            catch (Exception ex)
+            {
+                return CustomResult("product not found", HttpStatusCode.NotFound);
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProducts(ProductAddDTO productDto)
+        public async Task<IActionResult> CreateProduct([FromForm]ProductAddDTO productAdd)
         {
-            if( productDto.CategoryId==null || productDto.DiscountId == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Category and Discount must Enter");
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var product = new Product
+            var result = await _productService.CreateProduct(productAdd);
+            if (result.Status != true)
             {
-                CategoryId = productDto.CategoryId,
-                DiscountId = productDto.DiscountId,
-                ProductName = productDto.ProductName,
-                ProductDescription = productDto.ProductDescription,
-                ProductPrice = productDto.ProductPrice,
-                ProductQuantity = productDto.ProductQuantity,
-                CreateDate = CreateDate,
-                ModifiedDate = CreateDate,
-                ProductUrlImg = productDto.ProductUrlImg,
-                Status = true,
-                ProductByUserId = productDto.ProductByUserId
-            };
-
-           await _unitOfWork.Products.AddAsync(product);
-           await _unitOfWork.SaveChangesAsync();
-           return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+                return CustomResult("Create fail.", new { Productname = result.ProductName }, HttpStatusCode.Conflict);
+            }
+            return CustomResult("Create successful", result);
         }
+
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Product>> updateProducts(int id, ProductUpdateDto productDto)
+        public async Task<IActionResult> UpdateProduct(int id,[FromForm]ProductUpdateDto productUpp)
         {
-            var existingProduct = await _unitOfWork.Products.FindAsync(x => x.Id == id);
-            if (existingProduct == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-
-            var product = new Product
+            try
             {
-                CategoryId = productDto.CategoryId,
-                DiscountId = productDto.DiscountId,
-                ProductName = productDto.ProductName,
-                ProductDescription = productDto.ProductDescription,
-                ProductPrice = productDto.ProductPrice,
-                ProductQuantity = productDto.ProductQuantity,
-                CreateDate = CreateDate,
-                ModifiedDate = CreateDate,
-                ProductUrlImg = productDto.ProductUrlImg,
-                Status = true,
-            };
-
-            _unitOfWork.Products.Update(product);
-            await _unitOfWork.SaveChangesAsync();
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+                var result = await _productService.UpdateProductBYID(id,productUpp);
+                return CustomResult("Update successful", result);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult("Update product fail", HttpStatusCode.BadRequest);
+            }
         }
+
+
         [HttpDelete("{id}")]
-
-        public async Task<IActionResult> DeleteProducts(int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            var products =await _unitOfWork.Products.GetByIdAsync(id);
-            if (products == null)
+            try
             {
-                return NotFound();
+                var result = await _productService.DeleteProduct(id);
+                if (result)
+                {
+                    return CustomResult("Delete successful.");
+                }
+                else
+                {
+                    return CustomResult("Product not found.", HttpStatusCode.NotFound);
+                }
             }
-
-            _unitOfWork.Products.Delete(products);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok("the product was delete succesfully");
+            catch (Exception ex)
+            {
+                return CustomResult("Delete fail.", HttpStatusCode.BadRequest);
+            }
         }
 
 

@@ -4,6 +4,8 @@ using Microsoft.OpenApi.Models;
 using PIOONEER_Model.Mapper;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
+using Tools;
+
 using PIOONEER_Service.Interface;
 using PIOONEER_Service.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,11 +20,16 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+builder.Services.AddScoped<Firebases>();
+
 
 ///
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IUserService, UserService>();
-///
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductBUService, ProductBUService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 var config = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile(new AutoMapperProfile());

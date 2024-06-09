@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace PIOONEER_Model.DTO
 {
     public class ProductBUDTO
     {
-        public string ProductUrlImg { get; set; }
+        public IFormFile ProductUrlImg { get; set; }
     }
 }
