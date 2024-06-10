@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using Firebase.Auth;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Fpe;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
@@ -10,21 +13,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tools;
+using User = PIOONEER_Repository.Entity.User;
 
 namespace PIOONEER_Service.Service
 {
     public class OrderService : IOrderService
     {
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _email;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         DateTime CreateDate = DateTime.Now;
 
-        public OrderService(IConfiguration configuration, IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(IConfiguration configuration, IUnitOfWork unitOfWork, IMapper mapper, IEmailService email)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _email = email;
         }
         public IEnumerable<OrderResponse> GetAllOrder(string searchQuery = null)
         {
@@ -49,7 +55,7 @@ namespace PIOONEER_Service.Service
         {
             try
             {
-                var order = _unitOfWork.Orders.Get(filter: c => c.Id == id && c.Status == "true").FirstOrDefault();
+                var order = _unitOfWork.Orders.Get(filter: c => c.UserId == id && c.Status == "true").FirstOrDefault();
 
                 if (order == null)
                 {
@@ -57,6 +63,7 @@ namespace PIOONEER_Service.Service
                 }
 
                 var customerResponse = _mapper.Map<OrderResponse>(order);
+                await _email.SendBillEmailAsync(customerResponse.UserId.ToString(), customerResponse);
                 return customerResponse;
             }
             catch (Exception ex)
@@ -65,38 +72,117 @@ namespace PIOONEER_Service.Service
             }
         }
 
-        public async Task<OrderResponse> CreateOrder(OrderAddDTO OrderAdd)
+        public async Task<OrderResponse> GetOrderByEmailUser(int id)
         {
             try
             {
-                var exiting = _unitOfWork.Orders.Get(C => C.OrderCode == OrderAdd.OrderCode).FirstOrDefault();
-                if (exiting != null)
+                var order = _unitOfWork.Orders.Get(filter: c => c.UserId == id && c.Status == "true").FirstOrDefault();
+
+                if (order == null)
                 {
-                    throw new Exception("Order with the same code already exists");
+                    throw new Exception("Order not found");
                 }
 
-                var order = _mapper.Map<Order>(OrderAdd);
-                order.Status = "true";
-                order.CreateDate = CreateDate;
-                
-
-                _unitOfWork.Orders.Insert(order);
-                await _unitOfWork.SaveChangesAsync();
-
-                var OrderReposne = _mapper.Map<OrderResponse>(order);
-                return OrderReposne;
+                var customerResponse = _mapper.Map<OrderResponse>(order);
+                await _email.SendBillEmailAsync(customerResponse.UserId.ToString(), customerResponse);
+                return customerResponse;
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+        public static string GenerateRandomOrderCode(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public async Task<OrderResponse> CreateOrder(OrderAddDTO OrderAdd)
+        {
+            if (OrderAdd == null)
+                throw new ArgumentNullException(nameof(OrderAdd));
+            try
+            {
+                var orderCode = GenerateRandomOrderCode(7);
+
+                var order = _mapper.Map<Order>(OrderAdd);
+                order.OrderCode = orderCode;
+                order.Status = "processing";
+                order.CreateDate = DateTime.Now;  
+
+                _unitOfWork.Orders.Insert(order);
+                await _unitOfWork.SaveChangesAsync();
+
+
+                var orderResponse = _mapper.Map<OrderResponse>(order);
+                var user = _unitOfWork.UserRepository.Get(filter: c => c.Id == order.UserId).FirstOrDefault();
+
+                await _email.SendBillEmailAsync(user.Email, orderResponse);
+
+                return orderResponse;
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"Error in CreateOrder: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo)
+        {
+            if (uo == null)
+                throw new ArgumentNullException(nameof(uo));
+
+            try
+            {
+                var orderCode = GenerateRandomOrderCode(7);
+                //phần để add use
+                var customer = _mapper.Map<User>(uo);
+                customer.Username = "";
+                customer.Password = "";
+                customer.RoleId = 1;
+                customer.Status = "1";
+                _unitOfWork.UserRepository.Insert(customer);
+                await _unitOfWork.SaveChangesAsync();
+                //phần để add Order 
+                var order = _mapper.Map<Order>(uo);
+                order.UserId = customer.Id;
+                order.OrderCode = orderCode;
+                order.Status = "processing";
+                order.CreateDate = DateTime.Now;
+                _unitOfWork.Orders.Insert(order);
+                await _unitOfWork.SaveChangesAsync();
+
+                var orderResponse = _mapper.Map<OrderResponse>(order);
+
+                Console.WriteLine($"Sending email to: {customer.Email}");
+                Console.WriteLine($"OrderResponse: {JsonConvert.SerializeObject(orderResponse)}");
+
+                // Gửi email và log kết quả
+                await _email.SendBillEmailAsync(customer.Email, orderResponse);
+                Console.WriteLine("Email sent successfully.");
+
+                return orderResponse;
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"Error in CreateOrder: {ex.Message}");
+                throw;
+            }
+        }
+
+
         public async Task<OrderResponse> UpdateOrderBYID(int id,OrderUpDTO OrderUp)
         {
             try
             {
                 var existingOrder = _unitOfWork.Orders.Get(C => C.Id == id).FirstOrDefault();
-
+             
                 if (existingOrder == null)
                 {
                     throw new Exception("Order not found.");

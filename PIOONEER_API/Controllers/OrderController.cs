@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Service.Interface;
+using PIOONEER_Service.Service;
 using System.Net;
 
 namespace PIOONEER_API.Controllers
@@ -11,6 +12,7 @@ namespace PIOONEER_API.Controllers
     public class OrderController : BaseController
     {
         private readonly IOrderService _orderService;
+        private readonly IUserService _userService;
         public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
@@ -39,17 +41,20 @@ namespace PIOONEER_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromForm] OrderAddDTO OrderAdd)
+        public async Task<IActionResult> CreateOrder([FromForm] userAndOrderDTO uo)
         {
             if (!ModelState.IsValid)
             {
                 return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            var result = await _orderService.CreateOrder(OrderAdd);
-            if (result.Status != "true")
+
+            var result = await _orderService.CreateUserOrder(uo);
+            
+            if (result.Status != "processing")
             {
-                return CustomResult("Create fail.", new { Ordercode = result.OrderCode }, HttpStatusCode.Conflict);
+                return CustomResult("Create fail.", new { OrderBuser = result.Status }, HttpStatusCode.Conflict);
             }
+
             return CustomResult("Create successful", result);
         }
 
