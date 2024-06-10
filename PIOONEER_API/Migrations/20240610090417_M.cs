@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PIOONEER_API.Migrations
 {
     /// <inheritdoc />
-    public partial class Migrations : Migration
+    public partial class M : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

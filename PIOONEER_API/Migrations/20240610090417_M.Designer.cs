@@ -12,8 +12,8 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20240523102319_Migrations")]
-    partial class Migrations
+    [Migration("20240610090417_M")]
+    partial class M
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

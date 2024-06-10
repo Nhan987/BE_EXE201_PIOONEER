@@ -55,7 +55,7 @@ namespace PIOONEER_Service.Service
         {
             try
             {
-                var order = _unitOfWork.Orders.Get(filter: c => c.UserId == id && c.Status == "true").FirstOrDefault();
+                var order = _unitOfWork.Orders.Get(filter: c => c.UserId == id && c.Status == "1").FirstOrDefault();
 
                 if (order == null)
                 {
@@ -76,7 +76,7 @@ namespace PIOONEER_Service.Service
         {
             try
             {
-                var order = _unitOfWork.Orders.Get(filter: c => c.User.Email == mail && c.Status == "true").FirstOrDefault();
+                var order = _unitOfWork.Orders.Get(filter: c => c.User.Email == mail && c.Status == "1").FirstOrDefault();
 
                 if (order == null)
                 {
