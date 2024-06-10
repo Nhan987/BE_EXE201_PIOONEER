@@ -255,6 +255,18 @@ namespace PIOONEER_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.User", b =>

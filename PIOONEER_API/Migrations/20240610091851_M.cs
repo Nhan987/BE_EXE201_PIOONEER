@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace PIOONEER_API.Migrations
 {
     /// <inheritdoc />
@@ -242,6 +244,15 @@ namespace PIOONEER_API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "RoleName" },
+                values: new object[,]
+                {
+                    { 1L, "Admin" },
+                    { 2L, "User" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_UserId",

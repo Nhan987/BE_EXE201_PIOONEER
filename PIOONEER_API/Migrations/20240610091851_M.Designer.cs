@@ -12,7 +12,7 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20240610090417_M")]
+    [Migration("20240610091851_M")]
     partial class M
     {
         /// <inheritdoc />
@@ -258,6 +258,18 @@ namespace PIOONEER_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.User", b =>
