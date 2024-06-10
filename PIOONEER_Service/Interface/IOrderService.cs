@@ -15,5 +15,6 @@ namespace PIOONEER_Service.Interface
         Task<OrderResponse> UpdateOrderBYID(int id, OrderUpDTO orderUpdateDTO);
         Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo);
         Task<bool> DeleteOrder(int id);
+        Task<OrderResponse> GetOrderByEmailUser(string mail);
     }
 }

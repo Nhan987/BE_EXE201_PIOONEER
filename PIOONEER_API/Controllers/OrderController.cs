@@ -1,5 +1,6 @@
 ﻿using CoreApiResponse;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using PIOONEER_Model.DTO;
 using PIOONEER_Service.Interface;
 using PIOONEER_Service.Service;
@@ -25,13 +26,26 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Data load successful", order);
         }
 
-
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
             try
             {
                 var order = await _orderService.GetOrderByID(id);
+                return CustomResult("Order found", order);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult("Order not found", HttpStatusCode.NotFound);
+            }
+        }
+
+        [HttpGet("{mail}")]
+        public async Task<IActionResult> GetProductByMail(string mail)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByEmailUser(mail);
                 return CustomResult("Order found", order);
             }
             catch (Exception ex)

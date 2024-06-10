@@ -72,11 +72,11 @@ namespace PIOONEER_Service.Service
             }
         }
 
-        public async Task<OrderResponse> GetOrderByEmailUser(int id)
+        public async Task<OrderResponse> GetOrderByEmailUser(string mail)
         {
             try
             {
-                var order = _unitOfWork.Orders.Get(filter: c => c.UserId == id && c.Status == "true").FirstOrDefault();
+                var order = _unitOfWork.Orders.Get(filter: c => c.User.Email == mail && c.Status == "true").FirstOrDefault();
 
                 if (order == null)
                 {
@@ -92,6 +92,7 @@ namespace PIOONEER_Service.Service
                 throw ex;
             }
         }
+
         public static string GenerateRandomOrderCode(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
@@ -144,7 +145,7 @@ namespace PIOONEER_Service.Service
                 var customer = _mapper.Map<User>(uo);
                 customer.Username = "";
                 customer.Password = "";
-                customer.RoleId = 1;
+                customer.RoleId = 2;
                 customer.Status = "1";
                 _unitOfWork.UserRepository.Insert(customer);
                 await _unitOfWork.SaveChangesAsync();

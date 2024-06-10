@@ -83,7 +83,7 @@ namespace PIOONEER_Service.Service
                 var customer = _mapper.Map<User>(userRequest);
                 customer.Password = HashPassword(userRequest.Password);
                 customer.Status = "1";
-
+                customer.RoleId = 2;
                 _unitOfWork.UserRepository.Insert(customer);
                 _unitOfWork.Save();
 

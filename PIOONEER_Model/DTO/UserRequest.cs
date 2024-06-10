@@ -13,7 +13,6 @@ namespace PIOONEER_Model.DTO
         public string Name { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
-        public long RoleId { get; set; }
         public string Status { get; set; }
     }
 }
