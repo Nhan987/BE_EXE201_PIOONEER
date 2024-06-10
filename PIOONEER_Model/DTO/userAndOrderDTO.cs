@@ -1,19 +1,18 @@
-﻿using PIOONEER_Repository.Entity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PIOONEER_Model.DTO
 {
-    public class OrderAddDTO
+    public class userAndOrderDTO
     {
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "ProductId must be a number.")]
-        public long UserId { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+
         [Required]
         [RegularExpression("^[a-zA-Z]+$", ErrorMessage = "OrderRequirement can only contain alphabetic characters.")]
         public string OrderRequirement { get; set; }
@@ -24,7 +23,5 @@ namespace PIOONEER_Model.DTO
         [Required]
         [RegularExpression(@"^-?\d+(\.\d+)?$", ErrorMessage = "TotalPrice description must be a valid float number.")]
         public double TotalPrice { get; set; }
-
-
     }
 }
