@@ -13,7 +13,7 @@ namespace PIOONEER_Model.DTO
         public string Email { get; set; }
         public string Address { get; set; }
 
-        public string OrderRequirement { get; set; }
+        public string? OrderRequirement { get; set; }
         [Required]
         [RegularExpression("^[a-zA-Z]+$", ErrorMessage = "OrderCode can only contain alphabetic characters.")]
 

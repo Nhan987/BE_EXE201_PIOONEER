@@ -117,7 +117,6 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("OrderRequirement")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PaymentMethod")

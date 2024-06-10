@@ -12,8 +12,8 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20240610091851_M")]
-    partial class M
+    [Migration("20240610093518_oi")]
+    partial class oi
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,7 +120,6 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("OrderRequirement")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PaymentMethod")

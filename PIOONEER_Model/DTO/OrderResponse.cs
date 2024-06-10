@@ -12,7 +12,7 @@ namespace PIOONEER_Model.DTO
 
         public long UserId { get; set; }
 
-        public string OrderRequirement { get; set; }
+        public string? OrderRequirement { get; set; }
         public string OrderCode { get; set; }
         public string PaymentMethod { get; set; }
         public DateTime CreateDate { get; set; }

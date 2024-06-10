@@ -15,7 +15,7 @@ namespace PIOONEER_Model.DTO
         [Range(0, int.MaxValue, ErrorMessage = "ProductId must be a number.")]
         public long UserId { get; set; }
   
-        public string OrderRequirement { get; set; }
+        public string? OrderRequirement { get; set; }
         [Required]
         [RegularExpression("^[a-zA-Z]+$", ErrorMessage = "OrderCode can only contain alphabetic characters.")]
 
