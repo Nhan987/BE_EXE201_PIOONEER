@@ -31,11 +31,12 @@ namespace PIOONEER_Model.Mapper
             CreateMap<OrderDetails, OrderDetailsResponse>();
             CreateMap<OrderDetailsAddDTO, OrderDetails>();
             CreateMap<OrderDetailsUpDTO, OrderDetails>();
-
-            //
+            
             CreateMap<userAndOrderDTO, User>();
             CreateMap<userAndOrderDTO, Order>();
-            //
+   
+            CreateMap<Category, CategoryResponse>();
+            CreateMap<CategoryRequest, Category>();
 
         }
     }
