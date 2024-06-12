@@ -26,5 +26,7 @@ namespace PIOONEER_Repository.Entity
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+        public virtual ICollection<OrderDetails> OrderDetails { get; set; }
+
     }
 }
