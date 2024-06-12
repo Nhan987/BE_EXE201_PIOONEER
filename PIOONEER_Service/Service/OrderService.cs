@@ -71,26 +71,99 @@ namespace PIOONEER_Service.Service
                 throw ex;
             }
         }
-
-        public async Task<OrderResponse> GetOrderByEmailUser(string mail)
-        {
-            try
-            {
-                var order = _unitOfWork.Orders.Get(filter: c => c.User.Email == mail && c.Status == "1").FirstOrDefault();
-
-                if (order == null)
+                public IEnumerable<OrderResponse> GetAllOrderByEmail(string searchQuery = null)
                 {
-                    throw new Exception("Order not found");
-                }
+                    IEnumerable<Order> listOrder = Enumerable.Empty<Order>(); // Khởi tạo danh sách rỗng
+                    List<User> users = new List<User>(); // Khởi tạo danh sách rỗng cho người dùng
 
-                var customerResponse = _mapper.Map<OrderResponse>(order);
-                await _email.SendBillEmailAsync(customerResponse.UserId.ToString(), customerResponse);
-                return customerResponse;
-            }
-            catch (Exception ex)
+                    if (string.IsNullOrEmpty(searchQuery))
+                    {
+                        listOrder = _unitOfWork.Orders.Get().ToList();
+                    }
+
+
+                    else
+                    {
+                        var loweredSearchQuery = searchQuery.ToLower();
+                        users = _unitOfWork.UserRepository.Get(filter: c => c.Email.ToLower().Contains(loweredSearchQuery)).ToList();
+
+                        // Tìm các đơn đặt hàng cho các người dùng tìm thấy
+                        if (users.Any())
+                        {
+                            var userIds = users.Select(u => u.Id).ToList();
+                            listOrder = _unitOfWork.Orders.Get(filter: o => userIds.Contains(o.UserId)).ToList();
+                        }
+                    }
+
+                    var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(listOrder);
+
+                    // Gửi email nếu có tìm thấy người dùng và đơn đặt hàng (muốn gửi email thì bỏ cái này ra)
+                    /*       if (users.Any() && orderResponse.Any())
+                             {
+                                 foreach (var user in users)
+                                 {
+                                     var userOrders = orderResponse.Where(o => o.UserId == user.Id).ToList();
+                                     if (userOrders.Any())
+                                     {
+                                         try
+                                         {
+                                             _ = _email.SendListOrderEmailAsync(user.Email, userOrders);
+                                         }
+                                         catch (Exception ex)
+                                         {
+
+                                         }
+                                     }
+                                 }
+                             }
+                    */
+                    return orderResponse;
+                }
+        public IEnumerable<OrderResponse> GetAllOrderByEmailButCanSendEmail(string searchQuery = null)
+        {
+            IEnumerable<Order> listOrder = Enumerable.Empty<Order>(); // Khởi tạo danh sách rỗng
+            List<User> users = new List<User>(); // Khởi tạo danh sách rỗng cho người dùng
+
+            if (string.IsNullOrEmpty(searchQuery))
             {
-                throw ex;
+                listOrder = _unitOfWork.Orders.Get().ToList();
             }
+            else
+            {
+                var loweredSearchQuery = searchQuery.ToLower();
+                users = _unitOfWork.UserRepository.Get(filter: c => c.Email.ToLower().Contains(loweredSearchQuery)).ToList();
+
+                // Tìm các đơn đặt hàng cho các người dùng tìm thấy
+                if (users.Any())
+                {
+                    var userIds = users.Select(u => u.Id).ToList();
+                    listOrder = _unitOfWork.Orders.Get(filter: o => userIds.Contains(o.UserId)).ToList();
+                }
+            }
+
+            var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(listOrder);
+
+            // Gửi email nếu có tìm thấy người dùng và đơn đặt hàng (muốn gửi email thì bỏ cái này ra)
+                  if (users.Any() && orderResponse.Any())
+                     {
+                         foreach (var user in users)
+                         {
+                             var userOrders = orderResponse.Where(o => o.UserId == user.Id).ToList();
+                             if (userOrders.Any())
+                             {
+                                 try
+                                 {
+                                     _ = _email.SendListOrderEmailAsync(user.Email, userOrders);
+                                 }
+                                 catch (Exception ex)
+                                 {
+
+                                 }
+                             }
+                         }
+                     }
+          
+            return orderResponse;
         }
 
         public static string GenerateRandomOrderCode(int length)
@@ -141,29 +214,42 @@ namespace PIOONEER_Service.Service
             try
             {
                 var orderCode = GenerateRandomOrderCode(7);
-                //phần để add use
-                var customer = _mapper.Map<User>(uo);
-                customer.Username = "";
-                customer.Password = "";
-                customer.RoleId = 2;
-                customer.Status = "1";
-                _unitOfWork.UserRepository.Insert(customer);
-                await _unitOfWork.SaveChangesAsync();
-                //phần để add Order 
+                var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+                User customer;
+
+                if (existingUser == null)
+                {
+                    customer = _mapper.Map<User>(uo);
+                    customer.Username = "";
+                    customer.Password = "";
+                    customer.RoleId = 2;
+                    customer.Status = "1";
+
+                    _unitOfWork.UserRepository.Insert(customer);
+                    await _unitOfWork.SaveChangesAsync();
+                    customer = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+                    if (customer == null || customer.Id == 0)
+                        throw new InvalidOperationException("User creation failed.");
+                }
+                else
+                {
+                    customer = existingUser;
+                }
                 var order = _mapper.Map<Order>(uo);
-                order.UserId = customer.Id;
+                order.UserId = customer.Id; 
                 order.OrderCode = orderCode;
                 order.Status = "processing";
                 order.CreateDate = DateTime.Now;
+
+                
                 _unitOfWork.Orders.Insert(order);
                 await _unitOfWork.SaveChangesAsync();
 
+               
                 var orderResponse = _mapper.Map<OrderResponse>(order);
 
                 Console.WriteLine($"Sending email to: {customer.Email}");
                 Console.WriteLine($"OrderResponse: {JsonConvert.SerializeObject(orderResponse)}");
-
-                // Gửi email và log kết quả
                 await _email.SendBillEmailAsync(customer.Email, orderResponse);
                 Console.WriteLine("Email sent successfully.");
 
@@ -171,11 +257,11 @@ namespace PIOONEER_Service.Service
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine($"Error in CreateOrder: {ex.Message}");
                 throw;
             }
         }
+
 
 
         public async Task<OrderResponse> UpdateOrderBYID(int id,OrderUpDTO OrderUp)
@@ -191,7 +277,6 @@ namespace PIOONEER_Service.Service
                 _mapper.Map(OrderUp, existingOrder);
                 _unitOfWork.Orders.Update(existingOrder);
                 await _unitOfWork.SaveChangesAsync();
-
                 var orderResponse = _mapper.Map<OrderResponse>(existingOrder);
                 return orderResponse;
             }

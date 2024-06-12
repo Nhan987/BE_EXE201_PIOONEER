@@ -40,22 +40,22 @@ namespace PIOONEER_API.Controllers
             }
         }
 
-        [HttpGet("{mail}")]
-        public async Task<IActionResult> GetProductByMail(string mail)
+        [HttpGet("orders/{mail}")]
+        public IActionResult GetOrderByMail(string mail)
         {
-            try
-            {
-                var order = await _orderService.GetOrderByEmailUser(mail);
-                return CustomResult("Order found", order);
-            }
-            catch (Exception ex)
-            {
-                return CustomResult("Order not found", HttpStatusCode.NotFound);
-            }
+            var order = _orderService.GetAllOrderByEmail(mail);
+            return CustomResult("Order found", order);
+        }
+
+        [HttpGet("orders/send/{mail}")]
+        public IActionResult GetOrderByMailAndSend(string mail)
+        {
+            var order = _orderService.GetAllOrderByEmailButCanSendEmail(mail);
+            return CustomResult("Order found", order);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromForm] userAndOrderDTO uo)
+        public async Task<IActionResult> CreateOrder([FromBody] userAndOrderDTO uo)
         {
             if (!ModelState.IsValid)
             {
@@ -74,7 +74,7 @@ namespace PIOONEER_API.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderUpDTO OrderUp)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpDTO OrderUp)
         {
             if (!ModelState.IsValid)
             {
