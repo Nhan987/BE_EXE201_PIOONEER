@@ -55,7 +55,7 @@ namespace PIOONEER_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromForm] userAndOrderDTO uo)
+        public async Task<IActionResult> CreateOrder([FromBody] userAndOrderDTO uo)
         {
             if (!ModelState.IsValid)
             {
@@ -74,7 +74,7 @@ namespace PIOONEER_API.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderUpDTO OrderUp)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpDTO OrderUp)
         {
             if (!ModelState.IsValid)
             {

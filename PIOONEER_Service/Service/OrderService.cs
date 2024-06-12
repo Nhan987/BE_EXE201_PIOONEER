@@ -80,6 +80,8 @@ namespace PIOONEER_Service.Service
                     {
                         listOrder = _unitOfWork.Orders.Get().ToList();
                     }
+
+
                     else
                     {
                         var loweredSearchQuery = searchQuery.ToLower();
@@ -212,29 +214,42 @@ namespace PIOONEER_Service.Service
             try
             {
                 var orderCode = GenerateRandomOrderCode(7);
-                //phần để add use
-                var customer = _mapper.Map<User>(uo);
-                customer.Username = "";
-                customer.Password = "";
-                customer.RoleId = 2;
-                customer.Status = "1";
-                _unitOfWork.UserRepository.Insert(customer);
-                await _unitOfWork.SaveChangesAsync();
-                //phần để add Order 
+                var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+                User customer;
+
+                if (existingUser == null)
+                {
+                    customer = _mapper.Map<User>(uo);
+                    customer.Username = "";
+                    customer.Password = "";
+                    customer.RoleId = 2;
+                    customer.Status = "1";
+
+                    _unitOfWork.UserRepository.Insert(customer);
+                    await _unitOfWork.SaveChangesAsync();
+                    customer = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+                    if (customer == null || customer.Id == 0)
+                        throw new InvalidOperationException("User creation failed.");
+                }
+                else
+                {
+                    customer = existingUser;
+                }
                 var order = _mapper.Map<Order>(uo);
-                order.UserId = customer.Id;
+                order.UserId = customer.Id; 
                 order.OrderCode = orderCode;
                 order.Status = "processing";
                 order.CreateDate = DateTime.Now;
+
+                
                 _unitOfWork.Orders.Insert(order);
                 await _unitOfWork.SaveChangesAsync();
 
+               
                 var orderResponse = _mapper.Map<OrderResponse>(order);
 
                 Console.WriteLine($"Sending email to: {customer.Email}");
                 Console.WriteLine($"OrderResponse: {JsonConvert.SerializeObject(orderResponse)}");
-
-                // Gửi email và log kết quả
                 await _email.SendBillEmailAsync(customer.Email, orderResponse);
                 Console.WriteLine("Email sent successfully.");
 
@@ -242,11 +257,11 @@ namespace PIOONEER_Service.Service
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine($"Error in CreateOrder: {ex.Message}");
                 throw;
             }
         }
+
 
 
         public async Task<OrderResponse> UpdateOrderBYID(int id,OrderUpDTO OrderUp)
@@ -262,7 +277,6 @@ namespace PIOONEER_Service.Service
                 _mapper.Map(OrderUp, existingOrder);
                 _unitOfWork.Orders.Update(existingOrder);
                 await _unitOfWork.SaveChangesAsync();
-
                 var orderResponse = _mapper.Map<OrderResponse>(existingOrder);
                 return orderResponse;
             }
