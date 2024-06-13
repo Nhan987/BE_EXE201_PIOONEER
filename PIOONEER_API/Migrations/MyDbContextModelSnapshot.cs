@@ -117,7 +117,6 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("OrderRequirement")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PaymentMethod")
@@ -255,6 +254,18 @@ namespace PIOONEER_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.User", b =>

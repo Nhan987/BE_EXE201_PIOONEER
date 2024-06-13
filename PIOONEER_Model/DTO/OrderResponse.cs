@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PIOONEER_Repository.Entity
+namespace PIOONEER_Model.DTO
 {
-    [Table("Order")]
-    public class Order
+    public class OrderResponse
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         public long UserId { get; set; }
@@ -23,8 +18,5 @@ namespace PIOONEER_Repository.Entity
         public DateTime CreateDate { get; set; }
         public double TotalPrice { get; set; }
         public string Status { get; set; }
-
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; }
     }
 }

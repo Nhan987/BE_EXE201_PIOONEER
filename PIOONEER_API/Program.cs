@@ -4,25 +4,28 @@ using Microsoft.OpenApi.Models;
 using PIOONEER_Model.Mapper;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
+using Tools;
 using PIOONEER_Service.Interface;
 using PIOONEER_Service.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
-    
 
-
+// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-
-///
+builder.Services.AddScoped<Firebases>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IUserService, UserService>();
-///
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductBUService, ProductBUService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+
 var config = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile(new AutoMapperProfile());
@@ -34,8 +37,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("MyDB");
     options.UseMySql(connectionString, serverVersion, options => options.MigrationsAssembly("PIOONEER_API"));
-}
-);
+});
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -61,6 +64,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -78,8 +82,20 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
-builder.Services.AddControllers();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("*") // Allow all origins for development purposes
+                   .AllowAnyMethod() // Allow all HTTP methods
+                   .AllowAnyHeader(); // Allow all headers
+        });
+});
+
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -94,6 +110,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors(); // Enable CORS
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -17,6 +17,27 @@ namespace PIOONEER_Model.Mapper
             CreateMap<User, UserResponse>();
             CreateMap<UserRequest, User>();
             CreateMap<User, LoginResponse>();
+            CreateMap<Product, ProductResponeDTO>();
+            CreateMap<ProductAddDTO,Product>();
+            CreateMap<ProductUpdateDto,Product>();
+            CreateMap<ProductBUDTO, ProductByUser>();
+            CreateMap<ProductByUser, ProductBUResponseDTO>();
+
+            CreateMap<Order, OrderResponse>();
+            CreateMap<OrderAddDTO, Order>();
+            CreateMap<OrderUpDTO, Order>();
+            CreateMap<OrderResponse, EmailSendDTO>();
+
+            CreateMap<OrderDetails, OrderDetailsResponse>();
+            CreateMap<OrderDetailsAddDTO, OrderDetails>();
+            CreateMap<OrderDetailsUpDTO, OrderDetails>();
+            
+            CreateMap<userAndOrderDTO, User>();
+            CreateMap<userAndOrderDTO, Order>();
+   
+            CreateMap<Category, CategoryResponse>();
+            CreateMap<CategoryRequest, Category>();
+
         }
     }
 }

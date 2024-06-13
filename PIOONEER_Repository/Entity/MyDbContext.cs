@@ -41,5 +41,16 @@ namespace PIOONEER_Repository.Entity
 
             }
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Seed roles
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, RoleName = "Admin" },
+                new Role { Id = 2, RoleName = "User" }
+            );
+        }
+
     }
 }

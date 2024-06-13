@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace PIOONEER_API.Migrations
 {
     /// <inheritdoc />
-    public partial class Migrations : Migration
+    public partial class oi : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -128,7 +130,7 @@ namespace PIOONEER_API.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    OrderRequirement = table.Column<string>(type: "longtext", nullable: false)
+                    OrderRequirement = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     OrderCode = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -244,6 +246,15 @@ namespace PIOONEER_API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "RoleName" },
+                values: new object[,]
+                {
+                    { 1L, "Admin" },
+                    { 2L, "User" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_UserId",
