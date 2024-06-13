@@ -169,6 +169,30 @@ namespace PIOONEER_API.Migrations
                     b.ToTable("OrderDetails");
                 });
 
+            modelBuilder.Entity("PIOONEER_Repository.Entity.OtpEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Otp")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Otps");
+                });
+
             modelBuilder.Entity("PIOONEER_Repository.Entity.Product", b =>
                 {
                     b.Property<long>("Id")

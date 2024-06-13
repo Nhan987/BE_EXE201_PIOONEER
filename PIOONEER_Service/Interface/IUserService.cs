@@ -15,5 +15,7 @@ namespace PIOONEER_Service.Interface
         Task<UserResponse> CreateUser(UserRequest userRequest);
         Task<UserResponse> UpdateUser(int id, UserRequest userRequest);
         Task<bool> DeleteUser(int id);
+        Task<UserResponse> GetUserByEmail(string mail);
+        Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request);
     }
 }

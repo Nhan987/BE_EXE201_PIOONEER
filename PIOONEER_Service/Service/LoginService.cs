@@ -31,7 +31,7 @@ namespace PIOONEER_Service.Service
         public async Task<(string Token, LoginResponse LoginResponse)> AuthorizeUser(LoginRequest loginRequest)
         {
             var customer = _unitOfWork.UserRepository
-                .Get(filter: c => c.Username == loginRequest.Username && c.Status == "1").FirstOrDefault();
+                .Get(filter: c => c.Email == loginRequest.Email && c.Status == "1").FirstOrDefault();
 
             if (customer != null && VerifyPassword(loginRequest.Password, customer.Password))
             {
@@ -78,5 +78,6 @@ namespace PIOONEER_Service.Service
         {
             return EncryptPassword.Encrypt(password);
         }
+
     }
 }

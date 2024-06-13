@@ -12,13 +12,8 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-<<<<<<<< Updated upstream:PIOONEER_API/Migrations/20240523102319_Migrations.Designer.cs
-    [Migration("20240523102319_Migrations")]
-    partial class Migrations
-========
-    [Migration("20240613121048_oi")]
+    [Migration("20240613132627_oi")]
     partial class oi
->>>>>>>> Stashed changes:PIOONEER_API/Migrations/20240613121048_oi.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -125,7 +120,6 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("OrderRequirement")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PaymentMethod")
@@ -176,6 +170,30 @@ namespace PIOONEER_API.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderDetails");
+                });
+
+            modelBuilder.Entity("PIOONEER_Repository.Entity.OtpEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Otp")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Otps");
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.Product", b =>
@@ -263,6 +281,18 @@ namespace PIOONEER_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.User", b =>

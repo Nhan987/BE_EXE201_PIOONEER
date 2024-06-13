@@ -16,6 +16,7 @@ namespace PIOONEER_Repository.Repository
         IGenericRepository<Contact> Contacts { get; }
         IGenericRepository<ProductByUser> ProductByUsers { get; }
 
+        IGenericRepository<OtpEntity> OtpRepository { get; }
         Task<int> SaveChangesAsync();
         void Save();
     }
