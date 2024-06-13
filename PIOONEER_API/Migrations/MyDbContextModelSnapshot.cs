@@ -281,6 +281,9 @@ namespace PIOONEER_API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext");
+
                     b.Property<long>("RoleId")
                         .HasColumnType("bigint");
 
