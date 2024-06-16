@@ -133,6 +133,10 @@ namespace PIOONEER_API.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("shippingMethod")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -292,6 +296,10 @@ namespace PIOONEER_API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<long>("RoleId")
                         .HasColumnType("bigint");
 
@@ -324,7 +332,7 @@ namespace PIOONEER_API.Migrations
             modelBuilder.Entity("PIOONEER_Repository.Entity.OrderDetails", b =>
                 {
                     b.HasOne("PIOONEER_Repository.Entity.Order", "Order")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -387,6 +395,11 @@ namespace PIOONEER_API.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("PIOONEER_Repository.Entity.Order", b =>
+                {
+                    b.Navigation("OrderDetails");
                 });
 #pragma warning restore 612, 618
         }

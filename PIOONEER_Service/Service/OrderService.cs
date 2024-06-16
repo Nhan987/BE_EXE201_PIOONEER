@@ -204,6 +204,7 @@ namespace PIOONEER_Service.Service
                     customer.Password = "";
                     customer.RoleId = 2;
                     customer.Status = "1";
+                    
 
                     _unitOfWork.UserRepository.Insert(customer);
                     await _unitOfWork.SaveChangesAsync();
@@ -214,6 +215,8 @@ namespace PIOONEER_Service.Service
                 else
                 {
                     customer = existingUser;
+                    customer.Address = uo.Address;
+                    customer.PhoneNumber = uo.PhoneNumber;
                 }
                 var order = _mapper.Map<Order>(uo);
                 order.UserId = customer.Id; 
@@ -247,27 +250,27 @@ namespace PIOONEER_Service.Service
             if (uo == null)
                 throw new ArgumentNullException(nameof(uo));
 
-            // Lấy đơn hàng dựa trên OrderCode
+
             var order = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
 
-            // Kiểm tra nếu đơn hàng không tồn tại
+
             if (order == null)
             {
                 throw new InvalidOperationException("Order not found.");
             }
 
-            // Ánh xạ dữ liệu từ DTO sang OrderDetails
+     
             var orderDetails = _mapper.Map<OrderDetails>(uo);
             orderDetails.OrderId = order.Id;
 
-            // Chèn chi tiết đơn hàng vào cơ sở dữ liệu
+ 
             _unitOfWork.OrderDetails.Insert(orderDetails);
             await _unitOfWork.SaveChangesAsync();
 
-            // Lấy lại danh sách chi tiết đơn hàng sau khi thêm mới
+
             var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
 
-            // Ánh xạ từ Order và OrderDetails sang OrderResponse
+
             var orderResponse = _mapper.Map<OrderResponse>(order);
             orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
 
