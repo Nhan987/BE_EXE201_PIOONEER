@@ -19,6 +19,7 @@ namespace PIOONEER_Repository.Entity
 
         public string? OrderRequirement { get; set; }
         public string OrderCode { get; set; }
+        public string shippingMethod { get; set; }
         public string PaymentMethod { get; set; }
         public DateTime CreateDate { get; set; }
         public double TotalPrice { get; set; }
@@ -26,5 +27,7 @@ namespace PIOONEER_Repository.Entity
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+        public virtual ICollection<OrderDetails> OrderDetails { get; set; }
+
     }
 }

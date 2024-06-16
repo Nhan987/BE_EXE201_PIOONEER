@@ -14,6 +14,7 @@ namespace PIOONEER_Service.Interface
         Task<OrderResponse> CreateOrder(OrderAddDTO orderAddDTO);
         Task<OrderResponse> UpdateOrderBYID(int id, OrderUpDTO orderUpdateDTO);
         Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo);
+        Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo);
         Task<bool> DeleteOrder(int id);
         IEnumerable<OrderResponse> GetAllOrderByEmail(string searchQuery = null);
         IEnumerable<OrderResponse> GetAllOrderByEmailButCanSendEmail(string searchQuery = null);
