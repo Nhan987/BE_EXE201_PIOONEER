@@ -54,7 +54,7 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Order found", order);
         }
 
-        [HttpPost]
+        [HttpPost("create-order")]
         public async Task<IActionResult> CreateOrder([FromBody] userAndOrderDTO uo)
         {
             if (!ModelState.IsValid)
@@ -72,6 +72,23 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Create successful", result);
         }
 
+        [HttpPost("create-order-details")]
+        public async Task<IActionResult> CreateOrderOrdetails([FromBody] userAndOrderAndOrderdetailsDTO uo)
+        {
+            if (!ModelState.IsValid)
+            {
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
+            }
+
+            var result = await _orderService.AssignOrderdetails(uo);
+
+            if (result != null)
+            {
+                return CustomResult("Create fail.", new { OrderBuser = result }, HttpStatusCode.Conflict);
+            }
+
+            return CustomResult("Create successful", result);
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpDTO OrderUp)

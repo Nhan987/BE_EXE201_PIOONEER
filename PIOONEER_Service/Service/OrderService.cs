@@ -242,6 +242,41 @@ namespace PIOONEER_Service.Service
             }
         }
 
+        public async Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo)
+        {
+            if (uo == null)
+                throw new ArgumentNullException(nameof(uo));
+
+            // Lấy đơn hàng dựa trên OrderCode
+            var order = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
+
+            // Kiểm tra nếu đơn hàng không tồn tại
+            if (order == null)
+            {
+                throw new InvalidOperationException("Order not found.");
+            }
+
+            // Ánh xạ dữ liệu từ DTO sang OrderDetails
+            var orderDetails = _mapper.Map<OrderDetails>(uo);
+            orderDetails.OrderId = order.Id;
+
+            // Chèn chi tiết đơn hàng vào cơ sở dữ liệu
+            _unitOfWork.OrderDetails.Insert(orderDetails);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Lấy lại danh sách chi tiết đơn hàng sau khi thêm mới
+            var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
+
+            // Ánh xạ từ Order và OrderDetails sang OrderResponse
+            var orderResponse = _mapper.Map<OrderResponse>(order);
+            orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
+
+            return orderResponse;
+        }
+
+
+
+
 
 
         public async Task<OrderResponse> UpdateOrderBYID(int id,OrderUpDTO OrderUp)
