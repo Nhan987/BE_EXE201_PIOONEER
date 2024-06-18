@@ -36,6 +36,7 @@ namespace PIOONEER_Model.Mapper
 
             CreateMap<userAndOrderDTO, User>();
             CreateMap<userAndOrderDTO, Order>();
+            CreateMap<userAndOrderDTO, OrderDetails>();
             CreateMap<userAndOrderAndOrderdetailsDTO, User>();
 
             CreateMap<Category, CategoryResponse>();

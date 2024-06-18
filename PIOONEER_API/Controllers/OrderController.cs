@@ -64,9 +64,9 @@ namespace PIOONEER_API.Controllers
 
             var result = await _orderService.CreateUserOrder(uo);
             
-            if (result.Status != "processing")
+            if (result == null)
             {
-                return CustomResult("Create fail.", new { OrderBuser = result.Status }, HttpStatusCode.Conflict);
+                return CustomResult("Create fail.", new { OrderBuser = result }, HttpStatusCode.Conflict);
             }
 
             return CustomResult("Create successful", result);
