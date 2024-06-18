@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 namespace PIOONEER_Model.DTO
 {
     public class OrderUpDTO
-    {
-        [Required]
-        [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " OrderRequirement can only contain alphabetic characters.")]
-        public string OrderRequirement { get; set; }
+    {     
+        public string? OrderRequirement { get; set; }
         [Required]
         [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " OrderCode can only contain alphabetic characters.")]
         public string OrderCode { get; set; }

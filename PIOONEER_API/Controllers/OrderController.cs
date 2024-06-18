@@ -1,7 +1,9 @@
 ﻿using CoreApiResponse;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using PIOONEER_Model.DTO;
 using PIOONEER_Service.Interface;
+using PIOONEER_Service.Service;
 using System.Net;
 
 namespace PIOONEER_API.Controllers
@@ -11,6 +13,7 @@ namespace PIOONEER_API.Controllers
     public class OrderController : BaseController
     {
         private readonly IOrderService _orderService;
+        private readonly IUserService _userService;
         public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
@@ -23,8 +26,7 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Data load successful", order);
         }
 
-
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
             try
@@ -38,24 +40,58 @@ namespace PIOONEER_API.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromForm] OrderAddDTO OrderAdd)
+        [HttpGet("orders/{mail}")]
+        public IActionResult GetOrderByMail(string mail)
+        {
+            var order = _orderService.GetAllOrderByEmail(mail);
+            return CustomResult("Order found", order);
+        }
+
+        [HttpGet("orders/send/{mail}")]
+        public IActionResult GetOrderByMailAndSend(string mail)
+        {
+            var order = _orderService.GetAllOrderByEmailButCanSendEmail(mail);
+            return CustomResult("Order found", order);
+        }
+
+        [HttpPost("create-order")]
+        public async Task<IActionResult> CreateOrder([FromBody] userAndOrderDTO uo)
         {
             if (!ModelState.IsValid)
             {
                 return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            var result = await _orderService.CreateOrder(OrderAdd);
-            if (result.Status != "true")
+
+            var result = await _orderService.CreateUserOrder(uo);
+            
+            if (result == null)
             {
-                return CustomResult("Create fail.", new { Ordercode = result.OrderCode }, HttpStatusCode.Conflict);
+                return CustomResult("Create fail.", new { OrderBuser = result }, HttpStatusCode.Conflict);
             }
+
             return CustomResult("Create successful", result);
         }
 
+        [HttpPost("create-order-details")]
+        public async Task<IActionResult> CreateOrderOrdetails([FromBody] userAndOrderAndOrderdetailsDTO uo)
+        {
+            if (!ModelState.IsValid)
+            {
+                return CustomResult(ModelState, HttpStatusCode.BadRequest);
+            }
+
+            var result = await _orderService.AssignOrderdetails(uo);
+
+            if (result != null)
+            {
+                return CustomResult("Create fail.", new { OrderBuser = result }, HttpStatusCode.Conflict);
+            }
+
+            return CustomResult("Create successful", result);
+        }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderUpDTO OrderUp)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpDTO OrderUp)
         {
             if (!ModelState.IsValid)
             {

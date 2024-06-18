@@ -27,7 +27,7 @@ namespace PIOONEER_Repository.Entity
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<ProductByUser> ProductByUsers { get; set; }
-
+        public DbSet<OtpEntity> Otps { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -41,5 +41,16 @@ namespace PIOONEER_Repository.Entity
 
             }
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Seed roles
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, RoleName = "Admin" },
+                new Role { Id = 2, RoleName = "User" }
+            );
+        }
+
     }
 }

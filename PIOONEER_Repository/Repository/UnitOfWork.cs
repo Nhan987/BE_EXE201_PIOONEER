@@ -26,6 +26,7 @@ namespace PIOONEER_Repository.Repository
         private IGenericRepository<Discount> _discounts;
         private IGenericRepository<Contact> _contacts;
         private IGenericRepository<ProductByUser> _productByUsers;
+        private IGenericRepository<OtpEntity> _OtpEntitys;
 
         public IGenericRepository<User> UserRepository => _users ??= new GenericRepository<User>(_context);
         public IGenericRepository<Role> RoleRepository => _roles ??= new GenericRepository<Role>(_context);
@@ -36,7 +37,7 @@ namespace PIOONEER_Repository.Repository
         public IGenericRepository<Discount> Discounts => _discounts ??= new GenericRepository<Discount>(_context);
         public IGenericRepository<Contact> Contacts => _contacts ??= new GenericRepository<Contact>(_context);
         public IGenericRepository<ProductByUser> ProductByUsers => _productByUsers ??= new GenericRepository<ProductByUser>(_context);
-
+        public IGenericRepository<OtpEntity> OtpRepository => _OtpEntitys ??= new GenericRepository<OtpEntity>(_context);
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Org.BouncyCastle.Asn1.Ocsp;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
 using PIOONEER_Repository.Repository;
@@ -21,12 +22,14 @@ namespace PIOONEER_Service.Service
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
 
-        public UserService(IConfiguration configuration, IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IConfiguration configuration, IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _emailService = emailService;
         }
     
 
@@ -69,21 +72,43 @@ namespace PIOONEER_Service.Service
                 throw ex;
             }
         }
+        public async Task<UserResponse> GetUserByEmail(string mail)
+        {
+            try
+            {
+                var customer = _unitOfWork.UserRepository
+                    .Get(filter: u => u.Email == mail && u.Status == "1")
+                    .FirstOrDefault();
+
+                if (customer == null)
+                {
+                    throw new Exception("Customer not found");
+                }
+
+                var customerResponse = _mapper.Map<UserResponse>(customer);
+                return customerResponse;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if you have a logging mechanism
+                throw new Exception($"An error occurred while retrieving the customer by email: {mail}", ex);
+            }
+        }
 
         public async Task<UserResponse> CreateUser(UserRequest userRequest)
         {
             try
             {
-                var existingCustomer = _unitOfWork.UserRepository.Get(c => c.Username == userRequest.Username).FirstOrDefault();
+                var existingCustomer = _unitOfWork.UserRepository.Get(c => c.Email == userRequest.Email).FirstOrDefault();
                 if (existingCustomer != null)
                 {
-                    throw new Exception("User with the same Username address already exists.");
+                    throw new Exception("User with the same Email address already exists.");
                 }
 
                 var customer = _mapper.Map<User>(userRequest);
                 customer.Password = HashPassword(userRequest.Password);
                 customer.Status = "1";
-
+                customer.RoleId = 2;
                 _unitOfWork.UserRepository.Insert(customer);
                 _unitOfWork.Save();
 
@@ -143,6 +168,28 @@ namespace PIOONEER_Service.Service
         public string HashPassword(string password)
         {
             return EncryptPassword.Encrypt(password);
+        }
+        public async Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            if (await _emailService.VerifyOtpAsync(request.Email, request.Otp))
+            {
+                var user = _unitOfWork.UserRepository
+                    .Get(filter: u => u.Email == request.Email && u.Status == "1")
+                    .FirstOrDefault();
+
+                if (user == null)
+                {
+                    return new ResetPasswordResponse { Message = "User not found." };
+                }
+
+                user.Password = HashPassword(request.NewPassword);
+                _unitOfWork.UserRepository.Update(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new ResetPasswordResponse { Message = "Password reset successfully." };
+            }
+
+            return new ResetPasswordResponse { Message = "Invalid OTP." };
         }
 
     }

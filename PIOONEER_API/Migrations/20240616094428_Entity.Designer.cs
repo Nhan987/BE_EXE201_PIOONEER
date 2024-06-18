@@ -12,8 +12,8 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20240523102319_Migrations")]
-    partial class Migrations
+    [Migration("20240616094428_Entity")]
+    partial class Entity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,7 +120,6 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("OrderRequirement")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PaymentMethod")
@@ -136,6 +135,10 @@ namespace PIOONEER_API.Migrations
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("shippingMethod")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -258,6 +261,18 @@ namespace PIOONEER_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.User", b =>
@@ -281,6 +296,10 @@ namespace PIOONEER_API.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -316,7 +335,7 @@ namespace PIOONEER_API.Migrations
             modelBuilder.Entity("PIOONEER_Repository.Entity.OrderDetails", b =>
                 {
                     b.HasOne("PIOONEER_Repository.Entity.Order", "Order")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -379,6 +398,11 @@ namespace PIOONEER_API.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("PIOONEER_Repository.Entity.Order", b =>
+                {
+                    b.Navigation("OrderDetails");
                 });
 #pragma warning restore 612, 618
         }
