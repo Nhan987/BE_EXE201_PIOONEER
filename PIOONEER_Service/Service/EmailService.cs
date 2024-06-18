@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using PIOONEER_Repository.Repository;
 using PIOONEER_Repository.Entity;
+using System.Security.Cryptography;
 
 namespace PIOONEER_Service.Service
 {
@@ -138,9 +139,54 @@ namespace PIOONEER_Service.Service
             await SendEmailAsync(toEmail, subject, message);
         }
 
-        public Task SendOtpEmailAsync(string toEmail)
+        
+        public async Task SendOtpEmailAsync(string toEmail)
         {
-            throw new NotImplementedException();
+            var otp = GenerateOtp();
+            await StoreOtpAsync(toEmail, otp);
+
+            var subject = "Your OTP Code";
+            var message = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <h1 style='color: #007BFF;'>OTP Code</h1>
+                    <p>Your OTP code is: <strong>{otp}</strong></p>
+                    <p>This code will expire in 10 minutes.</p>
+                </div>";
+
+            await SendEmailAsync(toEmail, subject, message);
+        }
+        private string GenerateOtp()
+        {
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                byte[] tokenData = new byte[4];
+                rng.GetBytes(tokenData);
+                return BitConverter.ToUInt32(tokenData, 0).ToString("D6");
+            }
+        }
+        private async Task StoreOtpAsync(string email, string otp)
+        {
+            var otpEntity = new OtpEntity
+            {
+                Email = email,
+                Otp = otp,
+                ExpiryTime = DateTime.UtcNow.AddMinutes(10)
+            };
+             _unitOfWork.OtpRepository.AddAsync(otpEntity);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task<bool> VerifyOtpAsync(string email, string otp)
+        {
+            var otpEntity = _unitOfWork.OtpRepository
+                .Get(filter: o => o.Email == email && o.Otp == otp)
+                .FirstOrDefault();
+
+            if (otpEntity != null && otpEntity.ExpiryTime > DateTime.UtcNow)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

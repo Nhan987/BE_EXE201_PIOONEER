@@ -27,7 +27,7 @@ namespace PIOONEER_Repository.Entity
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<ProductByUser> ProductByUsers { get; set; }
-
+        public DbSet<OtpEntity> Otps { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

@@ -1,5 +1,6 @@
 ﻿using CoreApiResponse;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
 using PIOONEER_Repository.Entity;
@@ -42,7 +43,7 @@ namespace PIOONEER_API.Controllers
                 return CustomResult("product not found", HttpStatusCode.NotFound);
             }
         }
-
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromForm]ProductAddDTO productAdd)
         {
@@ -58,7 +59,7 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Create successful", result);
         }
 
-
+        [Authorize(Policy = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id,[FromForm]ProductUpdateDto productUpp)
         {
@@ -77,7 +78,7 @@ namespace PIOONEER_API.Controllers
             }
         }
 
-
+        [Authorize(Policy = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
