@@ -2,6 +2,7 @@
 using Firebase.Auth;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Fpe;
 using PIOONEER_Model.DTO;
@@ -194,7 +195,9 @@ namespace PIOONEER_Service.Service
             try
             {
                 var orderCode = GenerateRandomOrderCode(7);
+                var existingOrder = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
                 var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+
                 User customer;
 
                 if (existingUser == null)
@@ -204,7 +207,6 @@ namespace PIOONEER_Service.Service
                     customer.Password = "";
                     customer.RoleId = 2;
                     customer.Status = "1";
-                    
 
                     _unitOfWork.UserRepository.Insert(customer);
                     await _unitOfWork.SaveChangesAsync();
@@ -218,23 +220,44 @@ namespace PIOONEER_Service.Service
                     customer.Address = uo.Address;
                     customer.PhoneNumber = uo.PhoneNumber;
                 }
-                var order = _mapper.Map<Order>(uo);
-                order.UserId = customer.Id; 
-                order.OrderCode = orderCode;
-                order.Status = "processing";
-                order.CreateDate = DateTime.Now;
 
-                
-                _unitOfWork.Orders.Insert(order);
-                await _unitOfWork.SaveChangesAsync();
+                Order order;
 
-               
+                if (!uo.OrderCode.IsNullOrEmpty())
+                {
+                    
+                    if (existingOrder == null)
+                        throw new InvalidOperationException("Order not found.");
+
+                    order = _mapper.Map<Order>(existingOrder);
+                    order.UserId = customer.Id;
+                    order.OrderRequirement = uo.OrderRequirement;
+                    order.shippingMethod = uo.shippingMethod;
+                    order.Status = "UPDATE";
+                    order.CreateDate = DateTime.Now;
+                    _unitOfWork.Orders.Update(order);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                else
+                {
+                    order = _mapper.Map<Order>(uo);
+                    order.UserId = customer.Id;
+                    order.OrderCode = orderCode;
+                    order.Status = "processing";
+                    order.CreateDate = DateTime.Now;
+                    _unitOfWork.Orders.Insert(order);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                if (uo.OrderCode != null)
+                {
+                    var orderDetail = _mapper.Map<OrderDetails>(uo);
+                    orderDetail.OrderId = existingOrder.Id;
+                    _unitOfWork.OrderDetails.Insert(orderDetail);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
                 var orderResponse = _mapper.Map<OrderResponse>(order);
-
-                Console.WriteLine($"Sending email to: {customer.Email}");
-                Console.WriteLine($"OrderResponse: {JsonConvert.SerializeObject(orderResponse)}");
-                await _email.SendBillEmailAsync(customer.Email, orderResponse);
-                Console.WriteLine("Email sent successfully.");
+                orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
 
                 return orderResponse;
             }
@@ -245,37 +268,38 @@ namespace PIOONEER_Service.Service
             }
         }
 
-        public async Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo)
-        {
-            if (uo == null)
-                throw new ArgumentNullException(nameof(uo));
+
+                public async Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo)
+                {
+                    if (uo == null)
+                        throw new ArgumentNullException(nameof(uo));
 
 
-            var order = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
+                    var order = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
 
 
-            if (order == null)
-            {
-                throw new InvalidOperationException("Order not found.");
-            }
-
-     
-            var orderDetails = _mapper.Map<OrderDetails>(uo);
-            orderDetails.OrderId = order.Id;
-
- 
-            _unitOfWork.OrderDetails.Insert(orderDetails);
-            await _unitOfWork.SaveChangesAsync();
+                    if (order == null)
+                    {
+                        throw new InvalidOperationException("Order not found.");
+                    }
 
 
-            var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
+                    var orderDetails = _mapper.Map<OrderDetails>(uo);
+                    orderDetails.OrderId = order.Id;
 
 
-            var orderResponse = _mapper.Map<OrderResponse>(order);
-            orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
+                    _unitOfWork.OrderDetails.Insert(orderDetails);
+                    await _unitOfWork.SaveChangesAsync();
 
-            return orderResponse;
-        }
+
+                    var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
+
+
+                    var orderResponse = _mapper.Map<OrderResponse>(order);
+                    orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
+
+                    return orderResponse;
+                }
 
 
 
