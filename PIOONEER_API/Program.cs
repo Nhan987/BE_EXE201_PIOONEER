@@ -20,6 +20,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<Firebases>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<ICategory, CategoryService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductBUService, ProductBUService>();
@@ -32,7 +33,7 @@ var config = new MapperConfiguration(cfg =>
 });
 builder.Services.AddSingleton<IMapper>(config.CreateMapper());
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 23)); // Replace with your actual MySQL server version
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 0)); // Replace with your actual MySQL server version
 builder.Services.AddDbContext<MyDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("MyDB");

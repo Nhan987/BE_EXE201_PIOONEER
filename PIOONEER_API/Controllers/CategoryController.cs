@@ -13,7 +13,7 @@ namespace PIOONEER_API.Controllers
     [ApiController]
     public class CategoryController : BaseController
     {
-        private readonly CategoryService _service;
+        private readonly ICategory _service;
 
         public CategoryController(CategoryService service)
         {
