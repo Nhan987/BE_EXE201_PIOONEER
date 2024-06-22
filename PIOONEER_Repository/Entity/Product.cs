@@ -35,5 +35,7 @@ namespace PIOONEER_Repository.Entity
 
         [ForeignKey("ProductByUserId")]
         public virtual User ProductByUser { get; set; }
+
+        public virtual ICollection<OrderDetails> OrderDetails { get; set; }
     }
 }

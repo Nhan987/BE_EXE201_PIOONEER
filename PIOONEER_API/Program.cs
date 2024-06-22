@@ -33,13 +33,18 @@ var config = new MapperConfiguration(cfg =>
 });
 builder.Services.AddSingleton<IMapper>(config.CreateMapper());
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 23)); // Replace with your actual MySQL server version
+
+//var serverVersion = new MySqlServerVersion(new Version(8, 0, 0)); // Replace with your actual MySQL server version
+//builder.Services.AddDbContext<MyDbContext>(options =>
+//{
+//    var connectionString = builder.Configuration.GetConnectionString("MyDB");
+//    options.UseMySql(connectionString, serverVersion, options => options.MigrationsAssembly("PIOONEER_API"));
+//});
 builder.Services.AddDbContext<MyDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("MyDB");
-    options.UseMySql(connectionString, serverVersion, options => options.MigrationsAssembly("PIOONEER_API"));
+    options.UseSqlServer(connectionString, options => options.MigrationsAssembly("PIOONEER_API"));
 });
-
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

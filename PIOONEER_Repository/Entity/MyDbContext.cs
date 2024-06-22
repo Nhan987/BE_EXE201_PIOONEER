@@ -28,6 +28,7 @@ namespace PIOONEER_Repository.Entity
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<ProductByUser> ProductByUsers { get; set; }
         public DbSet<OtpEntity> Otps { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -37,12 +38,13 @@ namespace PIOONEER_Repository.Entity
                     .AddJsonFile("appsettings.json")
                     .Build();
                 var connectionString = configuration.GetConnectionString("MyDB");
-                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             base.OnModelCreating(modelBuilder);
 
             // Seed roles
@@ -50,7 +52,21 @@ namespace PIOONEER_Repository.Entity
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "User" }
             );
+
+            modelBuilder.Entity<OrderDetails>()
+            .HasOne(od => od.Product)
+            .WithMany(p => p.OrderDetails)
+            .HasForeignKey(od => od.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderDetails>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
+
 
     }
 }
