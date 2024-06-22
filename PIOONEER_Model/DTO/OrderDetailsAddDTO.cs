@@ -10,11 +10,8 @@ namespace PIOONEER_Model.DTO
     public class OrderDetailsAddDTO
     {
         [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "ProductId must be a number.")]
-        public long ProductId { get; set; }
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "OrderId must be a number.")]
-        public long OrderId { get; set; }
+        public string ProductName { get; set; }
+
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "OrderQuantity must be a number.")]
         public int OrderQuantity { get; set; }

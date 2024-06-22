@@ -11,27 +11,31 @@ namespace PIOONEER_Model.DTO
     {
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
+
+        [Required(ErrorMessage = "PhoneNumber is required")]
+        public string PhoneNumber { get; set; }
+
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; }
+
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
-        public string PhoneNumber { get; set; }
 
-        public string OrderCode { get; set; }
-        public string? OrderRequirement { get; set; }
-        [Required]
-        [RegularExpression("^[a-zA-Z]+$", ErrorMessage = "OrderCode can only contain alphabetic characters.")]
-        public string? shippingMethod { get; set; }
-        [Required]
+        public string OrderRequirement { get; set; }
+
+        [Required(ErrorMessage = "ShippingMethod is required")]
+        public string shippingMethod { get; set; }
+
+        [Required(ErrorMessage = "PaymentMethod is required")]
         public string PaymentMethod { get; set; }
-        [Required]
-        [RegularExpression(@"^-?\d+(\.\d+)?$", ErrorMessage = "TotalPrice description must be a valid float number.")]
+
+        [Required(ErrorMessage = "TotalPrice is required")]
         public double TotalPrice { get; set; }
 
-        public long ProductId { get; set; }
-        public int OrderQuantity { get; set; }
-        public double OrderPrice { get; set; }
+        [Required(ErrorMessage = "OrderDetail is required")]
+        public List<OrderDetailsAddDTO> OrderDetail { get; set; }
 
     }
+
 }

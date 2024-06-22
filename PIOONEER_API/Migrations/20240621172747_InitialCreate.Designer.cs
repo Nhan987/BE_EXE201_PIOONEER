@@ -12,8 +12,8 @@ using PIOONEER_Repository.Entity;
 namespace PIOONEER_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20240616094428_Entity")]
-    partial class Entity
+    [Migration("20240621172747_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -174,6 +174,30 @@ namespace PIOONEER_API.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderDetails");
+                });
+
+            modelBuilder.Entity("PIOONEER_Repository.Entity.OtpEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Otp")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Otps");
                 });
 
             modelBuilder.Entity("PIOONEER_Repository.Entity.Product", b =>

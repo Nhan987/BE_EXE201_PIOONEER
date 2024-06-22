@@ -195,7 +195,7 @@ namespace PIOONEER_Service.Service
             try
             {
                 var orderCode = GenerateRandomOrderCode(7);
-                var existingOrder = _unitOfWork.Orders.Get(filter: c => c.OrderCode == uo.OrderCode).FirstOrDefault();
+
                 var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
 
                 User customer;
@@ -222,39 +222,33 @@ namespace PIOONEER_Service.Service
                 }
 
                 Order order;
+                order = _mapper.Map<Order>(uo);
+                order.UserId = customer.Id;
+                order.OrderCode = orderCode;
+                order.Status = "processing";
+                order.CreateDate = DateTime.Now;
+                _unitOfWork.Orders.Insert(order);
+                await _unitOfWork.SaveChangesAsync();
 
-                if (!uo.OrderCode.IsNullOrEmpty())
-                {
-                    
-                    if (existingOrder == null)
-                        throw new InvalidOperationException("Order not found.");
 
-                    order = _mapper.Map<Order>(existingOrder);
-                    order.UserId = customer.Id;
-                    order.OrderRequirement = uo.OrderRequirement;
-                    order.shippingMethod = uo.shippingMethod;
-                    order.Status = "UPDATE";
-                    order.CreateDate = DateTime.Now;
-                    _unitOfWork.Orders.Update(order);
-                    await _unitOfWork.SaveChangesAsync();
-                }
-                else
+                if (uo.OrderDetail != null && uo.OrderDetail.Count > 0)
                 {
-                    order = _mapper.Map<Order>(uo);
-                    order.UserId = customer.Id;
-                    order.OrderCode = orderCode;
-                    order.Status = "processing";
-                    order.CreateDate = DateTime.Now;
-                    _unitOfWork.Orders.Insert(order);
+                    foreach (var detail in uo.OrderDetail)
+                    {
+                        var product = _unitOfWork.Products.Get(
+                            filter: p => p.ProductName == detail.ProductName).FirstOrDefault();
+
+                        if (product == null)
+                            throw new InvalidOperationException($"Product not found: {detail.ProductName}");
+
+                        var orderDetail = _mapper.Map<OrderDetails>(detail);
+                        orderDetail.OrderId = order.Id;
+                        orderDetail.ProductId = product.Id;
+                        _unitOfWork.OrderDetails.Insert(orderDetail);
+                    }
                     await _unitOfWork.SaveChangesAsync();
                 }
-                if (uo.OrderCode != null)
-                {
-                    var orderDetail = _mapper.Map<OrderDetails>(uo);
-                    orderDetail.OrderId = existingOrder.Id;
-                    _unitOfWork.OrderDetails.Insert(orderDetail);
-                    await _unitOfWork.SaveChangesAsync();
-                }
+
                 var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
                 var orderResponse = _mapper.Map<OrderResponse>(order);
                 orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
@@ -269,7 +263,8 @@ namespace PIOONEER_Service.Service
         }
 
 
-                public async Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo)
+
+        public async Task<OrderResponse> AssignOrderdetails(userAndOrderAndOrderdetailsDTO uo)
                 {
                     if (uo == null)
                         throw new ArgumentNullException(nameof(uo));
