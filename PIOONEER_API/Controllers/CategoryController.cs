@@ -15,7 +15,7 @@ namespace PIOONEER_API.Controllers
     {
         private readonly ICategory _service;
 
-        public CategoryController(CategoryService service)
+        public CategoryController(ICategory service)
         {
             _service = service;
         }
