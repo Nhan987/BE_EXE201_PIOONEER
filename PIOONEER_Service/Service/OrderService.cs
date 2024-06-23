@@ -229,21 +229,28 @@ namespace PIOONEER_Service.Service
                 order.CreateDate = DateTime.Now;
                 _unitOfWork.Orders.Insert(order);
                 await _unitOfWork.SaveChangesAsync();
-
-
+                if (uo.OrderRequirement == "string")
+                {
+                    order.OrderRequirement = " ";
+                }
                 if (uo.OrderDetail != null && uo.OrderDetail.Count > 0)
                 {
                     foreach (var detail in uo.OrderDetail)
                     {
-                        var product = _unitOfWork.Products.Get(
-                            filter: p => p.ProductName == detail.ProductName).FirstOrDefault();
-
+                        var product = _unitOfWork.Products.Get(filter: p => p.ProductName == detail.ProductName).FirstOrDefault();
                         if (product == null)
-                            throw new InvalidOperationException($"Product not found: {detail.ProductName}");
+                        {
+                            throw new InvalidOperationException($"Product with name {detail.ProductName} not found.");
+                        }
 
-                        var orderDetail = _mapper.Map<OrderDetails>(detail);
-                        orderDetail.OrderId = order.Id;
-                        orderDetail.ProductId = product.Id;
+                        var orderDetail = new OrderDetails
+                        {
+                            ProductId = product.Id,
+                            OrderPrice = detail.OrderPrice,
+                            OrderQuantity = detail.OrderQuantity,
+                            OrderId = order.Id
+                        };
+
                         _unitOfWork.OrderDetails.Insert(orderDetail);
                     }
                     await _unitOfWork.SaveChangesAsync();
@@ -253,11 +260,17 @@ namespace PIOONEER_Service.Service
                 var orderResponse = _mapper.Map<OrderResponse>(order);
                 orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
 
+                // Wrap the single orderResponse in a collection
+                var orderResponses = new List<OrderResponse> { orderResponse };
+
+                // Send email notification
+                await _email.SendListOrderEmailAsync(customer.Email, orderResponses);
+
                 return orderResponse;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CreateOrder: {ex.Message}");
+                Console.WriteLine($"Error in CreateUserOrder: {ex.Message}");
                 throw;
             }
         }
