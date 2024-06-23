@@ -113,9 +113,9 @@ namespace PIOONEER_Service.Service
                 <th style='padding: 8px; border: 1px solid #ddd;'>Yêu cầu đặt hàng</th>
                 <th style='padding: 8px; border: 1px solid #ddd;'>Mã đặt hàng</th>
                 <th style='padding: 8px; border: 1px solid #ddd;'>Phương thức thanh toán</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Create Date</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Total Price</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Status</th>
+                <th style='padding: 8px; border: 1px solid #ddd;'>Ngày khởi tạo</th>
+                <th style='padding: 8px; border: 1px solid #ddd;'>Tổng giá tiền</th>
+                <th style='padding: 8px; border: 1px solid #ddd;'>Trạng thái</th>
             </tr>";
 
             foreach (var order in orders)
