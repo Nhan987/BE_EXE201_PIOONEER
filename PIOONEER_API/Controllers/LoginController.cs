@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using PIOONEER_Model.DTO;
+using PIOONEER_Repository.Entity;
 using PIOONEER_Service.Interface;
 using System.Net;
 using Tools;
@@ -26,6 +27,7 @@ namespace PIOONEER_API.Controllers
         [AllowAnonymous] // Allow anonymous access to the login endpoint
         public async Task<IActionResult> Login([FromBody] PIOONEER_Model.DTO.LoginRequest loginRequest)
         {
+            
             var result = await _loginService.AuthorizeUser(loginRequest);
             if (result.Token != null)
             {
