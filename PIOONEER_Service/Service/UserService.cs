@@ -46,7 +46,9 @@ namespace PIOONEER_Service.Service
                 var loweredSearchQuery = searchQuery.ToLower();
                 listCustomers = _unitOfWork.UserRepository.Get(filter: c => c.Status == "1" &&
                               (c.Name.ToLower().Contains(loweredSearchQuery) ||
-                               c.Username.ToLower().Contains(loweredSearchQuery))).ToList();
+                               c.Username.ToLower().Contains(loweredSearchQuery) ||
+                               c.Email.ToLower().Contains(loweredSearchQuery)
+                               )).ToList();
             }
 
             var customerResponses = _mapper.Map<IEnumerable<UserResponse>>(listCustomers);
