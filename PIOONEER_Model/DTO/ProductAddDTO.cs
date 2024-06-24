@@ -27,8 +27,6 @@ namespace PIOONEER_Model.DTO
         [Required]
         public IFormFile ProductImg { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = " must be a number.")]
-        public long ProductByUserId { get; set; }
+
     }
 }

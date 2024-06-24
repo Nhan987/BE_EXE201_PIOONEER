@@ -9,8 +9,8 @@ namespace PIOONEER_Model.DTO
     public class ProductResponeDTO
     {
         public long Id { get; set; }
-        public long DiscountId { get; set; }
-        public long CategoryId { get; set; }
+//        public long DiscountId { get; set; }
+//        public long CategoryId { get; set; }
         public string ProductName { get; set; }
         public string ProductDescription { get; set; }
         public double ProductPrice { get; set; }
