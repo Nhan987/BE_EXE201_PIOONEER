@@ -10,12 +10,7 @@ namespace PIOONEER_Model.DTO
 {
     public class ProductAddDTO
     {
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "= must be a number.")]
-        public long DiscountId { get; set; }
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "must be a number.")]
-        public long CategoryId { get; set; }
+
 
         [Required]
         [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " ProductName can only contain alphabetic characters.")]

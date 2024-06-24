@@ -43,7 +43,7 @@ namespace PIOONEER_API.Controllers
                 return CustomResult("product not found", HttpStatusCode.NotFound);
             }
         }
-        [Authorize(Policy = "Admin")]
+   //     [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromForm]ProductAddDTO productAdd)
         {

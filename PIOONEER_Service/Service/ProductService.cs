@@ -82,9 +82,12 @@ namespace PIOONEER_Service.Service
 
                 var product = _mapper.Map<Product>(productAddDTO);
                 product.Status = true;
+                product.DiscountId = 1;
+                product.CategoryId = 1;
                 product.CreateDate = CreateDate;
                 product.ModifiedDate = CreateDate;
                 product.ProductUrlImg = imageUrl;
+                product.ProductByUserId = 1;
 
                 _unitOfWork.Products.Insert(product);
                 await _unitOfWork.SaveChangesAsync();
