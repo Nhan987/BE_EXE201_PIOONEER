@@ -225,7 +225,7 @@ namespace PIOONEER_Service.Service
                 order = _mapper.Map<Order>(uo);
                 order.UserId = customer.Id;
                 order.OrderCode = orderCode;
-                order.Status = "processing";
+                order.Status = "đang xử lí";
                 order.CreateDate = DateTime.Now;
                 _unitOfWork.Orders.Insert(order);
                 await _unitOfWork.SaveChangesAsync();

@@ -13,7 +13,7 @@ namespace PIOONEER_Model.DTO
 
 
         [Required]
-        [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " ProductName can only contain alphabetic characters.")]
+
         public string ProductName { get; set; }
         [Required]
         public string ProductDescription { get; set; }

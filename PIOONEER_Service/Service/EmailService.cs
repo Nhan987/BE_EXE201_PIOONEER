@@ -106,40 +106,39 @@ namespace PIOONEER_Service.Service
             var subject = "Your Bill Information";
 
             var message = @"
-    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-        <h1 style='color: #007BFF;'>Thông tin đặt hàng</h1>
-        <table style='width: 100%; border-collapse: collapse;'>
-            <tr>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Yêu cầu đặt hàng</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Mã đặt hàng</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Phương thức thanh toán</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Ngày khởi tạo</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Tổng giá tiền</th>
-                <th style='padding: 8px; border: 1px solid #ddd;'>Trạng thái</th>
-            </tr>";
+<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+    <h1 style='color: #007BFF;'>Thông tin đặt hàng</h1>
+    <table style='width: 100%; border-collapse: collapse; text-align: center;'>
+        <tr>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Yêu cầu đặt hàng</th>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Mã đặt hàng</th>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Phương thức thanh toán</th>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Ngày khởi tạo</th>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Tổng giá tiền</th>
+            <th style='padding: 8px; border: 1px solid #ddd;'>Trạng thái</th>
+        </tr>";
 
             foreach (var order in orders)
             {
                 message += $@"
-            <tr>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.OrderRequirement}</td>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.OrderCode}</td>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.PaymentMethod}</td>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.CreateDate}</td>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.TotalPrice}</td>
-                <td style='padding: 8px; border: 1px solid #ddd;'>{order.Status}</td>
-            </tr>";
+        <tr>
+            <td style='padding: 8px; border: 1px solid #ddd;'>{order.OrderRequirement}</td>
+            <td style='padding: 8px; border: 1px solid #ddd;'>{order.OrderCode}</td>
+            <td style='padding: 8px; border: 1px solid #ddd;'>{order.PaymentMethod}</td>
+            <td style='padding: 8px; border: 1px solid #ddd;'>{order.CreateDate}</td>
+            <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #007BFF;'>{order.TotalPrice:N0}</td>
+            <td style='padding: 8px; border: 1px solid #ddd;'>{order.Status}</td>
+        </tr>";
             }
 
             message += @"
-        </table>
-    </div>";
+    </table>
+</div>";
 
-            // Gửi email
             await SendEmailAsync(toEmail, subject, message);
         }
 
-        
+
         public async Task SendOtpEmailAsync(string toEmail)
         {
             var otp = GenerateOtp();
