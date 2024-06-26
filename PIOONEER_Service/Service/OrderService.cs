@@ -227,12 +227,17 @@ namespace PIOONEER_Service.Service
                 order.OrderCode = orderCode;
                 order.Status = "đang xử lí";
                 order.CreateDate = DateTime.Now;
+
                 _unitOfWork.Orders.Insert(order);
                 await _unitOfWork.SaveChangesAsync();
+
                 if (uo.OrderRequirement == "string")
                 {
                     order.OrderRequirement = " ";
                 }
+
+                double totalPrice = 0;
+
                 if (uo.OrderDetail != null && uo.OrderDetail.Count > 0)
                 {
                     foreach (var detail in uo.OrderDetail)
@@ -251,10 +256,16 @@ namespace PIOONEER_Service.Service
                             OrderId = order.Id
                         };
 
+                        totalPrice += detail.OrderPrice * detail.OrderQuantity;
+
                         _unitOfWork.OrderDetails.Insert(orderDetail);
                     }
                     await _unitOfWork.SaveChangesAsync();
                 }
+
+                order.TotalPrice = totalPrice;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
 
                 var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
                 var orderResponse = _mapper.Map<OrderResponse>(order);

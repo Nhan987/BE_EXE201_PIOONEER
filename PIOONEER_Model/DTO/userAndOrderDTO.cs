@@ -30,8 +30,7 @@ namespace PIOONEER_Model.DTO
         [Required(ErrorMessage = "PaymentMethod is required")]
         public string PaymentMethod { get; set; }
 
-        [Required(ErrorMessage = "TotalPrice is required")]
-        public double TotalPrice { get; set; }
+
 
         [Required(ErrorMessage = "OrderDetail is required")]
         public List<OrderDetailsAddDTO> OrderDetail { get; set; }
