@@ -102,9 +102,13 @@ namespace PIOONEER_Service.Service
             try
             {
                 var existingCustomer = _unitOfWork.UserRepository.Get(c => c.Email == userRequest.Email).FirstOrDefault();
-                if (existingCustomer != null)
+                if (existingCustomer != null && existingCustomer.Password !=null)
                 {
                     throw new Exception("User with the same Email address already exists.");
+                }
+                if (existingCustomer != null && existingCustomer.Password == null)
+                {
+                    return await UpdateUser((int)existingCustomer.Id, userRequest);
                 }
 
                 var customer = _mapper.Map<User>(userRequest);
