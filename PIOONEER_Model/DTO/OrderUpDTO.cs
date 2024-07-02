@@ -8,17 +8,24 @@ using System.Threading.Tasks;
 namespace PIOONEER_Model.DTO
 {
     public class OrderUpDTO
-    {     
-        public string? OrderRequirement { get; set; }
-        [Required]
-        [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " OrderCode can only contain alphabetic characters.")]
-        public string OrderCode { get; set; }
-        [Required]
-        [RegularExpression("^[a-zA-Z]+$", ErrorMessage = " PaymentMethod can only contain alphabetic characters.")]
+    {
+        public string Name { get; set; }
+
+        public string PhoneNumber { get; set; }
+
+        public string Email { get; set; }
+
+
+        public string Address { get; set; }
+
+        public string OrderRequirement { get; set; }
+
+
+        public string shippingMethod { get; set; }
+      
         public string PaymentMethod { get; set; }
-        [Required]
-        [RegularExpression(@"^-?\d+(\.\d+)?$", ErrorMessage = "TotalPrice description must be a valid float number.")]
-        public double TotalPrice { get; set; }
+
+        public string Status { get; set; }
 
     }
 }

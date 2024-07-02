@@ -50,7 +50,7 @@ namespace PIOONEER_API.Controllers
         [HttpGet("orders/send/{mail}")]
         public IActionResult GetOrderByMailAndSend(string mail)
         {
-            var order = _orderService.GetAllOrderByEmailButCanSendEmail(mail);
+            var order = _orderService.GetAllOrderByEmailAndSendEmailAsync(mail);
             return CustomResult("Order found", order);
         }
 
@@ -90,8 +90,8 @@ namespace PIOONEER_API.Controllers
             return CustomResult("Create successful", result);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpDTO OrderUp)
+        [HttpPut("{code}")]
+        public async Task<IActionResult> UpdateOrder(string code, [FromBody] OrderUpDTO OrderUp)
         {
             if (!ModelState.IsValid)
             {
@@ -99,7 +99,7 @@ namespace PIOONEER_API.Controllers
             }
             try
             {
-                var result = await _orderService.UpdateOrderBYID(id,OrderUp);
+                var result = await _orderService.UpdateOrderByCode(code,OrderUp);
                 return CustomResult("Update successful", result);
             }
             catch (Exception ex)

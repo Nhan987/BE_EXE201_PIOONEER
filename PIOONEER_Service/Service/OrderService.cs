@@ -71,80 +71,109 @@ namespace PIOONEER_Service.Service
                 throw ex;
             }
         }
-                public IEnumerable<OrderResponse> GetAllOrderByEmail(string searchQuery = null)
-                {
-                    IEnumerable<Order> listOrder = Enumerable.Empty<Order>(); // Khởi tạo danh sách rỗng
-                    List<User> users = new List<User>(); // Khởi tạo danh sách rỗng cho người dùng
-
-                    if (string.IsNullOrEmpty(searchQuery))
-                    {
-                        listOrder = _unitOfWork.Orders.Get().ToList();
-                    }
-
-
-                    else
-                    {
-                        var loweredSearchQuery = searchQuery.ToLower();
-                        users = _unitOfWork.UserRepository.Get(filter: c => c.Email.ToLower().Contains(loweredSearchQuery)).ToList();
-
-                        // Tìm các đơn đặt hàng cho các người dùng tìm thấy
-                        if (users.Any())
-                        {
-                            var userIds = users.Select(u => u.Id).ToList();
-                            listOrder = _unitOfWork.Orders.Get(filter: o => userIds.Contains(o.UserId), includeProperties: "OrderDetails").ToList();
-                        }
-                    }
-
-                    var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(listOrder);
-
-
-                    return orderResponse;
-                }
-        public IEnumerable<OrderResponse> GetAllOrderByEmailButCanSendEmail(string searchQuery = null)
+        public IEnumerable<OrderResponse> GetAllOrderByEmail(string searchQuery = null)
         {
-            IEnumerable<Order> listOrder = Enumerable.Empty<Order>(); // Khởi tạo danh sách rỗng
-            List<User> users = new List<User>(); // Khởi tạo danh sách rỗng cho người dùng
+            IEnumerable<Order> listOrder = Enumerable.Empty<Order>();
+            List<User> users = new List<User>();
+            if (string.IsNullOrEmpty(searchQuery))
+            {
+                listOrder = _unitOfWork.Orders.Get(includeProperties: "OrderDetails,OrderDetails.Product").ToList();
+            }
+            else
+            {
+                var loweredSearchQuery = searchQuery.ToLower();
+                users = _unitOfWork.UserRepository.Get(filter: c => c.Email.ToLower().Contains(loweredSearchQuery)).ToList();
+                if (users.Any())
+                {
+                    var userIds = users.Select(u => u.Id).ToList();
+                    listOrder = _unitOfWork.Orders.Get(
+                        filter: o => userIds.Contains(o.UserId),
+                        includeProperties: "OrderDetails,OrderDetails.Product"
+                    ).ToList();
+                }
+            }
+
+            var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(listOrder);
+
+            // Manually map ProductName
+            foreach (var order in orderResponse)
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    var orderDetail = listOrder
+                        .SelectMany(o => o.OrderDetails)
+                        .FirstOrDefault(od => od.Id == detail.Id);
+
+                    if (orderDetail != null && orderDetail.Product != null)
+                    {
+                        detail.ProductName = orderDetail.Product.ProductName;  // Assuming Product has a Name property
+                    }
+                }
+            }
+
+            return orderResponse;
+        }
+        public  IEnumerable<OrderResponse> GetAllOrderByEmailAndSendEmailAsync(string searchQuery = null)
+        {
+            IEnumerable<Order> listOrder = Enumerable.Empty<Order>();
+            List<User> users = new List<User>();
 
             if (string.IsNullOrEmpty(searchQuery))
             {
-                listOrder = _unitOfWork.Orders.Get().ToList();
+                listOrder = _unitOfWork.Orders.Get(includeProperties: "OrderDetails,OrderDetails.Product").ToList();
             }
             else
             {
                 var loweredSearchQuery = searchQuery.ToLower();
                 users = _unitOfWork.UserRepository.Get(filter: c => c.Email.ToLower().Contains(loweredSearchQuery)).ToList();
 
-                // Tìm các đơn đặt hàng cho các người dùng tìm thấy
                 if (users.Any())
                 {
                     var userIds = users.Select(u => u.Id).ToList();
-                    listOrder = _unitOfWork.Orders.Get(filter: o => userIds.Contains(o.UserId)).ToList();
+                    listOrder = _unitOfWork.Orders.Get(
+                        filter: o => userIds.Contains(o.UserId),
+                        includeProperties: "OrderDetails,OrderDetails.Product"
+                    ).ToList();
                 }
             }
 
-            var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(listOrder);
+            var orderResponses = _mapper.Map<List<OrderResponse>>(listOrder);
 
-            // Gửi email nếu có tìm thấy người dùng và đơn đặt hàng (muốn gửi email thì bỏ cái này ra)
-                  if (users.Any() && orderResponse.Any())
-                     {
-                         foreach (var user in users)
-                         {
-                             var userOrders = orderResponse.Where(o => o.UserId == user.Id).ToList();
-                             if (userOrders.Any())
-                             {
-                                 try
-                                 {
-                                     _ = _email.SendListOrderEmailAsync(user.Email, userOrders);
-                                 }
-                                 catch (Exception ex)
-                                 {
+            // Thêm ProductName vào OrderDetailsResponse
+            foreach (var order in orderResponses)
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    var originalOrder = listOrder.FirstOrDefault(o => o.Id == order.Id);
+                    var originalDetail = originalOrder?.OrderDetails.FirstOrDefault(od => od.Id == detail.Id);
+                    if (originalDetail?.Product != null)
+                    {
+                        detail.ProductName = originalDetail.Product.ProductName;
+                    }
+                }
+            }
 
-                                 }
-                             }
-                         }
-                     }
-          
-            return orderResponse;
+            // Gửi email nếu có tìm thấy người dùng và đơn đặt hàng
+            if (users.Any() && orderResponses.Any())
+            {
+                foreach (var user in users)
+                {
+                    var userOrders = orderResponses.Where(o => o.UserId == user.Id).ToList();
+                    if (userOrders.Any())
+                    {
+                        try
+                        {
+                            _email.SendListOrderEmailAsync(user.Email, userOrders);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to send email to {user.Email}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            return orderResponses;
         }
 
         public static string GenerateRandomOrderCode(int length)
@@ -187,104 +216,114 @@ namespace PIOONEER_Service.Service
             }
         }
 
-        public async Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo)
+public async Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo)
+{
+    if (uo == null)
+        throw new ArgumentNullException(nameof(uo));
+
+    try
+    {
+        var orderCode = GenerateRandomOrderCode(7);
+
+        var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+
+        User customer;
+
+        if (existingUser == null)
         {
-            if (uo == null)
-                throw new ArgumentNullException(nameof(uo));
+            customer = _mapper.Map<User>(uo);
+            customer.Username = "";
+            customer.Password = "";
+            customer.RoleId = 2;
+            customer.Status = "1";
 
-            try
-            {
-                var orderCode = GenerateRandomOrderCode(7);
-
-                var existingUser = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
-
-                User customer;
-
-                if (existingUser == null)
-                {
-                    customer = _mapper.Map<User>(uo);
-                    customer.Username = "";
-                    customer.Password = "";
-                    customer.RoleId = 2;
-                    customer.Status = "1";
-
-                    _unitOfWork.UserRepository.Insert(customer);
-                    await _unitOfWork.SaveChangesAsync();
-                    customer = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
-                    if (customer == null || customer.Id == 0)
-                        throw new InvalidOperationException("User creation failed.");
-                }
-                else
-                {
-                    customer = existingUser;
-                    customer.Address = uo.Address;
-                    customer.PhoneNumber = uo.PhoneNumber;
-                }
-
-                Order order;
-                order = _mapper.Map<Order>(uo);
-                order.UserId = customer.Id;
-                order.OrderCode = orderCode;
-                order.Status = "đang xử lí";
-                order.CreateDate = DateTime.Now;
-
-                _unitOfWork.Orders.Insert(order);
-                await _unitOfWork.SaveChangesAsync();
-
-                if (uo.OrderRequirement == "string")
-                {
-                    order.OrderRequirement = " ";
-                }
-
-                double totalPrice = 0;
-
-                if (uo.OrderDetail != null && uo.OrderDetail.Count > 0)
-                {
-                    foreach (var detail in uo.OrderDetail)
-                    {
-                        var product = _unitOfWork.Products.Get(filter: p => p.ProductName == detail.ProductName).FirstOrDefault();
-                        if (product == null)
-                        {
-                            throw new InvalidOperationException($"Product with name {detail.ProductName} not found.");
-                        }
-
-                        var orderDetail = new OrderDetails
-                        {
-                            ProductId = product.Id,
-                            OrderPrice = detail.OrderPrice,
-                            OrderQuantity = detail.OrderQuantity,
-                            OrderId = order.Id
-                        };
-
-                        totalPrice += detail.OrderPrice * detail.OrderQuantity;
-
-                        _unitOfWork.OrderDetails.Insert(orderDetail);
-                    }
-                    await _unitOfWork.SaveChangesAsync();
-                }
-
-                order.TotalPrice = totalPrice;
-                _unitOfWork.Orders.Update(order);
-                await _unitOfWork.SaveChangesAsync();
-
-                var orderDetailsList = _unitOfWork.OrderDetails.Get(filter: od => od.OrderId == order.Id).ToList();
-                var orderResponse = _mapper.Map<OrderResponse>(order);
-                orderResponse.OrderDetails = _mapper.Map<ICollection<OrderDetailsResponse>>(orderDetailsList);
-
-                // Wrap the single orderResponse in a collection
-                var orderResponses = new List<OrderResponse> { orderResponse };
-
-                // Send email notification
-                await _email.SendListOrderEmailAsync(customer.Email, orderResponses);
-
-                return orderResponse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in CreateUserOrder: {ex.Message}");
-                throw;
-            }
+            _unitOfWork.UserRepository.Insert(customer);
+            await _unitOfWork.SaveChangesAsync();
+            customer = _unitOfWork.UserRepository.Get(filter: c => c.Email == uo.Email).FirstOrDefault();
+            if (customer == null || customer.Id == 0)
+                throw new InvalidOperationException("User creation failed.");
         }
+        else
+        {
+            customer = existingUser;
+            customer.Address = uo.Address;
+            customer.PhoneNumber = uo.PhoneNumber;
+        }
+
+        Order order;
+        order = _mapper.Map<Order>(uo);
+        order.UserId = customer.Id;
+        order.OrderCode = orderCode;
+        order.Status = "đang xử lí";
+        order.CreateDate = DateTime.Now;
+
+        _unitOfWork.Orders.Insert(order);
+        await _unitOfWork.SaveChangesAsync();
+
+        if (uo.OrderRequirement == "string")
+        {
+            order.OrderRequirement = " ";
+        }
+
+        double totalPrice = 0;
+        var orderDetailsList = new List<OrderDetails>();
+
+        if (uo.OrderDetail != null && uo.OrderDetail.Count > 0)
+        {
+            foreach (var detail in uo.OrderDetail)
+            {
+                var product = _unitOfWork.Products.Get(filter: p => p.ProductName == detail.ProductName).FirstOrDefault();
+                if (product == null)
+                {
+                    throw new InvalidOperationException($"Product with name {detail.ProductName} not found.");
+                }
+
+                var orderDetail = new OrderDetails
+                {
+                    ProductId = product.Id,
+                    OrderPrice = detail.OrderPrice,
+                    OrderQuantity = detail.OrderQuantity,
+                    OrderId = order.Id
+                };
+
+                totalPrice += detail.OrderPrice * detail.OrderQuantity;
+
+                _unitOfWork.OrderDetails.Insert(orderDetail);
+                orderDetailsList.Add(orderDetail);
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        order.TotalPrice = totalPrice;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+
+        var orderResponse = _mapper.Map<OrderResponse>(order);
+        
+        // Map OrderDetails to OrderDetailsResponse, including ProductName
+        orderResponse.OrderDetails = orderDetailsList.Select(od => new OrderDetailsResponse
+        {
+            Id = od.Id,
+            ProductName = _unitOfWork.Products.GetByIdAsync(od.ProductId).Result?.ProductName,
+            OrderId = od.OrderId,
+            OrderQuantity = od.OrderQuantity,
+            OrderPrice = od.OrderPrice
+        }).ToList();
+
+        // Wrap the single orderResponse in a collection
+        var orderResponses = new List<OrderResponse> { orderResponse };
+
+        // Send email notification
+        await _email.SendListOrderEmailAsync(customer.Email, orderResponses);
+
+        return orderResponse;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in CreateUserOrder: {ex.Message}");
+        throw;
+    }
+}
 
 
 
@@ -324,26 +363,46 @@ namespace PIOONEER_Service.Service
 
 
 
-
-        public async Task<OrderResponse> UpdateOrderBYID(int id,OrderUpDTO OrderUp)
+        public async Task<OrderUpdateResponse> UpdateOrderByCode(string orderCode, OrderUpDTO orderUp)
         {
             try
             {
-                var existingOrder = _unitOfWork.Orders.Get(C => C.Id == id).FirstOrDefault();
-             
+                var existingOrder = _unitOfWork.Orders.Get(o => o.OrderCode == orderCode, includeProperties: "OrderDetails")
+                    .FirstOrDefault();
+
                 if (existingOrder == null)
                 {
                     throw new Exception("Order not found.");
                 }
-                _mapper.Map(OrderUp, existingOrder);
+
+                // Cập nhật các trường nếu có giá trị mới (không null và không phải là chuỗi trắng)
+                if (!string.IsNullOrWhiteSpace(orderUp.OrderRequirement) && orderUp.OrderRequirement != "string")
+                {
+                    existingOrder.OrderRequirement = orderUp.OrderRequirement;
+                }
+                if (!string.IsNullOrWhiteSpace(orderUp.shippingMethod) && orderUp.shippingMethod != "string")
+                {
+                    existingOrder.shippingMethod = orderUp.shippingMethod;
+                }
+                if (!string.IsNullOrWhiteSpace(orderUp.PaymentMethod) && orderUp.PaymentMethod != "string")
+                {
+                    existingOrder.PaymentMethod = orderUp.PaymentMethod;
+                }
+                if (!string.IsNullOrWhiteSpace(orderUp.Status) && orderUp.Status != "string")
+                {
+                    existingOrder.Status = orderUp.Status;
+                }
+
                 _unitOfWork.Orders.Update(existingOrder);
                 await _unitOfWork.SaveChangesAsync();
-                var orderResponse = _mapper.Map<OrderResponse>(existingOrder);
-                return orderResponse;
+
+                var orderUpdateResponse = _mapper.Map<OrderUpdateResponse>(existingOrder);
+                return orderUpdateResponse;
             }
             catch (Exception ex)
             {
-                throw ex;
+                // Log the exception
+                throw new Exception("An error occurred while updating the order.", ex);
             }
         }
 

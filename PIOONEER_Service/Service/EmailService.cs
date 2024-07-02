@@ -180,14 +180,14 @@ namespace PIOONEER_Service.Service
 
             foreach (var item in order.OrderDetails)
             {
-                var productName = await GetProductNameById(item.ProductId); // Thêm phương thức này
                 message += $@"
-            <tr>
-                <td>{productName}</td>
-                <td style='text-align: right;'>{item.OrderQuantity}</td>
-                <td style='text-align: right;'>{item.OrderPrice:N0}₫</td>
-            </tr>";
+        <tr>
+            <td>{item.ProductName}</td>
+            <td style='text-align: right;'>{item.OrderQuantity}</td>
+            <td style='text-align: right;'>{item.OrderPrice:N0}₫</td>
+        </tr>";
             }
+
 
 
             message += $@"

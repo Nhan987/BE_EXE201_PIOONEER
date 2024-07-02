@@ -26,6 +26,7 @@ namespace PIOONEER_Model.Mapper
             CreateMap<Order, OrderResponse>();
             CreateMap<OrderAddDTO, Order>();
             CreateMap<OrderUpDTO, Order>();
+            CreateMap<Order, OrderUpdateResponse>();
             CreateMap<OrderResponse, EmailSendDTO>();
             CreateMap<userAndOrderAndOrderdetailsDTO, Order>();
 
