@@ -48,12 +48,20 @@ namespace PIOONEER_API.Controllers
             {
                 return CustomResult(ModelState, HttpStatusCode.BadRequest);
             }
-            var result = await _userService.CreateUser(userRequest);
-            if (result.Status != "1")
+
+            try
             {
-                return CustomResult("Create fail.", new { Username = result.Username }, HttpStatusCode.Conflict);
+                var result = await _userService.CreateUser(userRequest);
+                return CustomResult("Create successful", result);
             }
-            return CustomResult("Create successful", result);
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("User with the same Email address already exists."))
+                {
+                    return CustomResult(ex.Message, HttpStatusCode.Conflict);
+                }
+                return CustomResult("Create fail.", ex.Message, HttpStatusCode.InternalServerError);
+            }
         }
 
 
