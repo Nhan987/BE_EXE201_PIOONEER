@@ -150,7 +150,7 @@ namespace PIOONEER_Service.Service
             }
         }
 
-        public async Task<bool> DeleteUser(int id)
+        public async Task<bool> DeleteUser(long id)
         {
             try
             {
@@ -160,8 +160,9 @@ namespace PIOONEER_Service.Service
                     throw new Exception("User not found.");
                 }
 
-                customer.Status = "0";
-                _unitOfWork.UserRepository.Update(customer);
+                //customer.Status = "0";
+                //_unitOfWork.UserRepository.Update(customer);
+                _unitOfWork.UserRepository.Delete(customer);
                 _unitOfWork.Save();
 
                 return true;

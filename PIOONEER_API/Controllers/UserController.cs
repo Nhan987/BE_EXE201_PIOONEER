@@ -85,7 +85,7 @@ namespace PIOONEER_API.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomer(long id)
         {
             try
             {
