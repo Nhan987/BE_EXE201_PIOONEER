@@ -96,15 +96,17 @@ namespace PIOONEER_Service.Service
 
             await smtpClient.SendMailAsync(mailMessage);
         }
-        public async Task SendListOrderEmailAsync(string toEmail, IEnumerable<OrderResponse> orders)
+        public async Task<IEnumerable<OrderResponse>> SendListOrderEmailAsync(string toEmail, IEnumerable<OrderResponse> orders)
         {
             if (orders == null || !orders.Any())
             {
                 throw new ArgumentNullException(nameof(orders), "Orders cannot be null or empty");
             }
-            var order = orders.First(); // Assuming we're dealing with a single order for simplicity
+
             var subject = "Đơn hàng của bạn đã được tạo";
-            var message = $@"
+            var message = new StringBuilder();
+
+            message.Append($@"
 <!DOCTYPE html>
 <html lang='vi'>
 <head>
@@ -162,10 +164,12 @@ namespace PIOONEER_Service.Service
     </div>
     <div class='content'>
         <p>Xin chào bạn,</p>
-        <p>Đơn hàng <strong>{order.OrderCode}</strong> của bạn đã được tạo vào ngày {order.CreateDate:dd/MM/yyyy}.</p>
-        <p>Vui lòng chờ đợi. Sau khi bạn xác nhận, chúng tôi sẽ thanh toán cho Người bán.</p>
-        
-        <h2>THÔNG TIN ĐƠN HÀNG - DÀNH CHO NGƯỜI MUA</h2>
+        <p>Dưới đây là thông tin về các đơn hàng của bạn:</p>");
+
+            foreach (var order in orders)
+            {
+                message.Append($@"
+        <h2>THÔNG TIN ĐƠN HÀNG - {order.OrderCode}</h2>
         <p><strong>Mã đơn hàng:</strong> {order.OrderCode}</p>
         <p><strong>Ngày đặt hàng:</strong> {order.CreateDate:dd/MM/yyyy HH:mm:ss}</p>
         <p><strong>Trạng thái đơn hàng:</strong> {order.Status}</p>
@@ -176,21 +180,19 @@ namespace PIOONEER_Service.Service
                 <th>Sản phẩm</th>
                 <th style='text-align: right;'>Số lượng</th>
                 <th style='text-align: right;'>Giá</th>
-            </tr>";
+            </tr>");
 
-            foreach (var item in order.OrderDetails)
-            {
-                message += $@"
-        <tr>
-            <td>{item.ProductName}</td>
-            <td style='text-align: right;'>{item.OrderQuantity}</td>
-            <td style='text-align: right;'>{item.OrderPrice:N0}₫</td>
-        </tr>";
-            }
+                foreach (var item in order.OrderDetails)
+                {
+                    message.Append($@"
+            <tr>
+                <td>{item.ProductName}</td>
+                <td style='text-align: right;'>{item.OrderQuantity}</td>
+                <td style='text-align: right;'>{item.OrderPrice:N0}₫</td>
+            </tr>");
+                }
 
-
-
-            message += $@"
+                message.Append($@"
             <tr class='total'>
                 <td colspan='2' style='text-align: right;'>Tổng tiền hàng:</td>
                 <td style='text-align: right;'>{order.TotalPrice:N0}₫</td>
@@ -206,22 +208,26 @@ namespace PIOONEER_Service.Service
         </table>
         
         <h3>BƯỚC TIẾP THEO</h3>
-        <p>Bạn không hài lòng với sản phẩm?</p>
-        <p>hãy liên hệ với chúng tôi sớm nhất có thể</p>    
-        <p>Chúc bạn luôn có những trải nghiệm tuyệt vời khi mua sắm tại Shopee.</p>
-        
-        <p>Trân trọng,<br>Đội ngũ Shopee</p>
+        <p>Bạn không hài lòng với sản phẩm? Hãy liên hệ với chúng tôi sớm nhất có thể</p>    
+        <p>Chúc bạn luôn có những trải nghiệm tuyệt vời khi mua sắm tại Piooneer.</p>");
+            }
+
+            message.Append($@"
+        <p>Trân trọng,<br>Đội ngũ Piooneer</p>
     </div>
-    
     <div class='footer'>
         <p>Bạn có thắc mắc? <a href='#'>Liên hệ chúng tôi tại đây</a></p>
         <p>Hãy mua sắm cùng Piooneer</p>
     </div>
 </body>
-</html>";
+</html>");
 
-            await SendEmailAsync(toEmail, subject, message);
+            await SendEmailAsync(toEmail, subject, message.ToString());
+
+            return orders;
         }
+
+
         private async Task<string> GetProductNameById(long productId)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(productId);

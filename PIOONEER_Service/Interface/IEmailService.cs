@@ -13,7 +13,7 @@ namespace PIOONEER_Service.Interface
         Task SendEmailAsync(string toEmail, string subject, string message);
         Task SendBillEmailAsync(string toEmail, OrderResponse billResponse);
 
-        Task SendListOrderEmailAsync(string toEmail, IEnumerable<OrderResponse> orders);
+        Task<IEnumerable<OrderResponse>> SendListOrderEmailAsync(string toEmail, IEnumerable<OrderResponse> orders);
         Task<bool> VerifyOtpAsync(string email, string otp);
     }
 }

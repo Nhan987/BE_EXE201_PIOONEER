@@ -113,7 +113,7 @@ namespace PIOONEER_Service.Service
 
             return orderResponse;
         }
-        public  IEnumerable<OrderResponse> GetAllOrderByEmailAndSendEmailAsync(string searchQuery = null)
+        public IEnumerable<OrderResponse> GetAllOrderByEmailAndSendEmailAsync(string searchQuery = null)
         {
             IEnumerable<Order> listOrder = Enumerable.Empty<Order>();
             List<User> users = new List<User>();
@@ -142,13 +142,16 @@ namespace PIOONEER_Service.Service
             // Thêm ProductName vào OrderDetailsResponse
             foreach (var order in orderResponses)
             {
-                foreach (var detail in order.OrderDetails)
+                var originalOrder = listOrder.FirstOrDefault(o => o.Id == order.Id);
+                if (originalOrder != null)
                 {
-                    var originalOrder = listOrder.FirstOrDefault(o => o.Id == order.Id);
-                    var originalDetail = originalOrder?.OrderDetails.FirstOrDefault(od => od.Id == detail.Id);
-                    if (originalDetail?.Product != null)
+                    foreach (var detail in order.OrderDetails)
                     {
-                        detail.ProductName = originalDetail.Product.ProductName;
+                        var originalDetail = originalOrder.OrderDetails.FirstOrDefault(od => od.Id == detail.Id);
+                        if (originalDetail?.Product != null)
+                        {
+                            detail.ProductName = originalDetail.Product.ProductName;
+                        }
                     }
                 }
             }
@@ -163,7 +166,8 @@ namespace PIOONEER_Service.Service
                     {
                         try
                         {
-                            _email.SendListOrderEmailAsync(user.Email, userOrders);
+                            // Đảm bảo gọi phương thức SendListOrderEmailAsync một cách đồng bộ
+                            _email.SendListOrderEmailAsync(user.Email, userOrders).GetAwaiter().GetResult();
                         }
                         catch (Exception ex)
                         {
@@ -410,13 +414,13 @@ public async Task<OrderResponse> CreateUserOrder(userAndOrderDTO uo)
         {
             try
             {
-                var order = _unitOfWork.Orders.Get(filter: c => c.Id == id && c.Status == "true").FirstOrDefault();
+                var order = _unitOfWork.Orders.Get(filter: c => c.Id == id && c.Status == "đang xử lí").FirstOrDefault();
                 if (order == null)
                 {
                     throw new Exception("Order not found.");
                 }
 
-                order.Status = "false";
+                order.Status = "bị hủy";
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
