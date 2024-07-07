@@ -199,7 +199,7 @@ namespace PIOONEER_Service.Service
             </tr>
             <tr>
                 <td colspan='2' style='text-align: right;'>Phương thức vận chuyển:</td>
-                <td style='text-align: right;'>{order.shippingMethod}</td>
+                <td style='text-align: right;'>{order.ShippingMethod}</td>
             </tr>
             <tr class='total'>
                 <td colspan='2' style='text-align: right;'>Tổng thanh toán:</td>

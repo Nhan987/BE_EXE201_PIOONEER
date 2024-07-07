@@ -48,8 +48,26 @@ namespace PIOONEER_Service.Service
             }
 
             var orderList = query.ToList();
-            var orderResponse = _mapper.Map<IEnumerable<OrderResponse>>(orderList);
-            return orderResponse;
+            var orderResponses = new List<OrderResponse>();
+
+            foreach (var order in orderList)
+            {
+                // Lấy thông tin User từ UserId của order
+                var user = _unitOfWork.UserRepository.GetByID(order.UserId);
+                if (user != null)
+                {
+                    // Tạo một đối tượng OrderResponse và map từ Order
+                    var orderResponse = _mapper.Map<OrderResponse>(order);
+
+                    // Lấy Username từ thuộc tính Username của đối tượng User
+                    orderResponse.name = user.Name;
+
+                    // Thêm OrderResponse vào danh sách
+                    orderResponses.Add(orderResponse);
+                }
+            }
+
+            return orderResponses;
         }
 
         public async Task<OrderResponse> GetOrderByID(int id)
@@ -161,7 +179,7 @@ namespace PIOONEER_Service.Service
             {
                 foreach (var user in users)
                 {
-                    var userOrders = orderResponses.Where(o => o.UserId == user.Id).ToList();
+                    var userOrders = orderResponses.Where(o => o.name == user.Name).ToList();
                     if (userOrders.Any())
                     {
                         try

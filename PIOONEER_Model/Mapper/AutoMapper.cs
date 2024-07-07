@@ -23,7 +23,9 @@ namespace PIOONEER_Model.Mapper
             CreateMap<ProductBUDTO, ProductByUser>();
             CreateMap<ProductByUser, ProductBUResponseDTO>();
 
-            CreateMap<Order, OrderResponse>();
+            CreateMap<Order, OrderResponse>()
+                .ForMember(dest => dest.name, opt => opt.MapFrom(src => src.User.Name))
+                .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
             CreateMap<OrderAddDTO, Order>();
             CreateMap<OrderUpDTO, Order>();
             CreateMap<Order, OrderUpdateResponse>();

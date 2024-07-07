@@ -9,9 +9,9 @@ namespace PIOONEER_Model.DTO
     public class OrderResponse
     {
         public long Id { get; set; }
-        public long UserId { get; set; }
+        public string name { get; set; } // Thay đổi từ UserId thành Username
         public string OrderRequirement { get; set; }
-        public string? shippingMethod { get; set; }
+        public string? ShippingMethod { get; set; } // Sửa chính tả 'shippingMethod' thành 'ShippingMethod'
         public string OrderCode { get; set; }
         public string PaymentMethod { get; set; }
         public DateTime CreateDate { get; set; }
