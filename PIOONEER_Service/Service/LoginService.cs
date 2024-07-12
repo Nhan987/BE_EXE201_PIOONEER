@@ -28,18 +28,28 @@ namespace PIOONEER_Service.Service
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
+
         public async Task<(string Token, LoginResponse LoginResponse)> AuthorizeUser(LoginRequest loginRequest)
         {
-            User admin = new User();
-            admin.Email = "admin@admin.piooner";
-            admin.Password = HashPassword("admin@123");
-            admin.RoleId = 1;
-            admin.Name= "admin";
-            admin.Username= "admin";
+            var adminEmail = _configuration["AdminAccount:Email"];
+            var adminPassword = _configuration["AdminAccount:Password"];
+            var adminRoleId = int.Parse(_configuration["AdminAccount:RoleId"]);
+            var adminName = _configuration["AdminAccount:Name"];
+            var adminUsername = _configuration["AdminAccount:Username"];
+
+            User admin = new User
+            {
+                Email = adminEmail,
+                Password = HashPassword(adminPassword),
+                RoleId = adminRoleId,
+                Name = adminName,
+                Username = adminUsername
+            };
+
             var customer = _unitOfWork.UserRepository
                 .Get(filter: c => c.Email == loginRequest.Email && c.Status == "1").FirstOrDefault();
 
-            if (admin.Email== loginRequest.Email & VerifyPassword(loginRequest.Password, admin.Password))
+            if (admin.Email == loginRequest.Email && VerifyPassword(loginRequest.Password, admin.Password))
             {
                 string token = GenerateToken(admin);
                 var customerResponse = _mapper.Map<LoginResponse>(admin);
